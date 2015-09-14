@@ -4,15 +4,14 @@ AR  := ar rucs
 RM	:= rm -rf
 CFLAGS  := -Wall -g -m64
 #CFLAGS := -Wall -O2 -m64
-INCLUDE := -I. -I../common/ 
+INCLUDE := -I. -I../../common/ -I../../reactor/ 
 LDFLAGS := -m64 -lpthread
-#LIBS    := ../../run/lib/libev.a ../../run/lib/libcommon.a ../../run/lib/libpublic.a \
-	../../run/lib/libluaLib.a ../../run/lib/libdbaccess.a  ../../run/lib/libmysqlclient.so ../../run/lib/libsnappy.a ../../run/lib/liblz4.a
+LIBS    := ../../run/lib/libreactor.a ../../run/lib/libcommon.a
 
-TARGETPATH := ../run/lib/
+TARGETPATH := ../../run/
 $(shell mkdir -p $(TARGETPATH))
 #TARGET  := $(TARGETPATH)/test
-TARGET := $(TARGETPATH)/libreactor.a
+TARGET := $(TARGETPATH)/server
 # 临时目标文件的存放路径
 OBJPATH := ./obj
 # 临时目录不存在时自动创建
@@ -81,8 +80,8 @@ list:
 	@echo $(FILES)
 
 $(TARGET): $(OBJS) $(LIBS)
-	$(AR) $@ $(OBJPATH)/*.o
-#	$(LD) $(LDFLAGS) -o $@ $(OBJPATH)/*.o $(LIBS)
+#	$(AR) $@ $(OBJPATH)/*.o
+	$(LD) $(LDFLAGS) -o $@ $(OBJPATH)/*.o $(LIBS)
 
 $(OBJPATH)/%.o: $(obj2name) $(OBJPATH)/%.d
 	$(CC) -c -o $@ $(obj2name) $(CFLAGS) $(MARCO) $(INCLUDE)

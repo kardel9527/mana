@@ -10,13 +10,13 @@ class Reactor {
 public:
 	Reactor(IReactor *reactor, bool del) : _del(del), _impl(reactor) {}
 
-	~Reactor() { if (_del) safe_delete(_reactor); }
+	~Reactor() { if (_del) safe_delete(_impl); }
 
-	int32 handle_events(timet interval = 0ull) { return -1; }
+	int32 begin_handle_events(timet interval = 50) { _impl->deactive(true); while (_impl->is_active()) _impl->handle_events(interval); return 0; }
+	
+	void end_handle_events(bool active = false) { _impl->deactive(active); }
 
 	bool is_active() { return _impl->is_active(); }
-
-	void deactive(bool active = false) { _impl->deactive(active); }
 
 	int32 register_handler(IHandler *handler, int32 mask) { return _impl->register_handler(handler, mask); }
 

@@ -4,16 +4,17 @@
 #include "udt.h"
 #include "ihandler.h"
 #include "ringbuffer.h"
+#include "inetaddr.h"
 #include "lock.h"
 
 NMS_BEGIN(kevent)
 
 class NetIoHandler : public IHandler {
 public:
-	NetIoHandler() : _fd(-1), _port(0), _active(true) {}
+	NetIoHandler() : _fd(-1), _active(true) {}
 	~NetIoHandler();
 
-	void set_addr(const char *addr, uint16 port);
+	void redirect(int32 fd, const InetAddr &addr) { _fd = fd; _inet_addr = addr; }
 
 	virtual int32 get_handle() { return _fd; }
 
@@ -33,9 +34,8 @@ public:
 
 private:
 	int32 _fd;
-	uint16 _port;
-	char _addr[64];
 	bool _active;
+	InetAddr _inet_addr;
 	RingBuffer _snd_buff;
 	kcommon::Mutex _snd_lock;
 	RingBuffer _rcv_buff;

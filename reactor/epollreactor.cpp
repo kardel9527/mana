@@ -56,7 +56,8 @@ int32 EpollReactor::HandlerRepository::remove(int32 hid) {
 }
 
 EpollReactor::HandlerEntry* EpollReactor::HandlerRepository::find(int32 hid) {
-	return (hid <= 0 || hid >= (int32)_capacity) ? NULL : &(_tuple[hid]);
+	if (hid <= 0 || hid >= (int32)_capacity) return NULL;
+	return _tuple[hid]._handler ? &(_tuple[hid]) : NULL;
 }
 
 // HandlerRepository
@@ -153,9 +154,9 @@ int32 EpollReactor::register_handler(IHandler *handler, int32 mask) {
 	epoll_event event;
 	event.data.fd = handler->get_handle();
 	event.events = emask | EPOLLERR | EPOLLET | EPOLLONESHOT;
-	epoll_ctl(_epoll_fd, event.data.fd, EPOLL_CTL_ADD, &event);
+	ret = epoll_ctl(_epoll_fd, EPOLL_CTL_ADD, event.data.fd, &event);
 
-	return 0;
+	return ret;
 }
 
 int32 EpollReactor::register_handler(int32 sig_num, IHandler *handler) {
@@ -169,7 +170,7 @@ int32 EpollReactor::remove_handler(int32 hid) {
 	epoll_event event;
 	event.data.fd = entry->_handler->get_handle();
 	event.events = entry->_mask;
-	epoll_ctl(_epoll_fd, event.data.fd, EPOLL_CTL_DEL, &event);
+	epoll_ctl(_epoll_fd, EPOLL_CTL_DEL, event.data.fd, &event);
 
 	entry->_handler->handle_close();
 	return _handler.remove(hid);
@@ -182,7 +183,7 @@ int32 EpollReactor::suspend_handler(int32 hid) {
 	epoll_event event;
 	event.data.fd = entry->_handler->get_handle();
 	event.events = entry->_mask;
-	epoll_ctl(_epoll_fd, event.data.fd, EPOLL_CTL_DEL, &event);
+	epoll_ctl(_epoll_fd, EPOLL_CTL_DEL, event.data.fd, &event);
 
 	entry->_suspend = true;
 	return 0;
@@ -196,7 +197,7 @@ int32 EpollReactor::resume_handler(int32 hid) {
 	epoll_event event;
 	event.data.fd = entry->_handler->get_handle();
 	event.events = entry->_mask | EPOLLERR | EPOLLET | EPOLLONESHOT;
-	epoll_ctl(_epoll_fd, event.data.fd, EPOLL_CTL_ADD, &event);
+	epoll_ctl(_epoll_fd, EPOLL_CTL_ADD, event.data.fd, &event);
 
 	entry->_suspend = false;
 	return 0;
@@ -213,20 +214,13 @@ int32 EpollReactor::cancel_timer(int32 tid) {
 
 int32 EpollReactor::epoll_mask(int32 mask) {
 	int32 ret = 0;
-	switch (mask) {
-	case IHandler::HET_Read:
-		ret = EPOLLIN;
-		break;
-	case IHandler::HET_Write:
-		ret = EPOLLOUT;
-		break;
-	case IHandler::HET_Except:
-		ret = EPOLLERR;
-		break;
-	default:
-		break;
-	}
-	
+	if (mask & IHandler::HET_Read)
+		ret |= EPOLLIN;
+	if (mask & IHandler::HET_Write)
+		ret |= EPOLLIN;
+
+	ret |= EPOLLERR;
+
 	return ret;
 }
 

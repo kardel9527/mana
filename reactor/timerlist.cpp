@@ -21,7 +21,7 @@ TimerList::~TimerList() {
 int32 TimerList::add(timet delay, timet interval, IHandler *handler) {
 	assert(handler);
 	Node *node = new Node();
-	node->_id = _seed;
+	node->_id = ++_seed;
 	node->_handler = handler;
 	node->_timeout = time(0) + delay + interval;
 	node->_interval = interval;
@@ -57,7 +57,7 @@ int32 TimerList::expire_single() {
 	Node *curr = _head;
 	while (curr) {
 		uint64 now = time(0);
-		if (curr->_timeout >= now) {
+		if (curr->_timeout <= now) {
 			curr->_handler->handle_timeout();
 			if (curr->_interval) {
 				// TODO: put in head.

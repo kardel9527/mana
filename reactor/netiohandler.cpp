@@ -2,16 +2,19 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <unistd.h>
+#include <fcntl.h>
 #include <errno.h>
 #include "ireactor.h"
 #include "stringutil.h"
 #include "netiohandler.h"
 
 NMS_BEGIN(kevent)
-
-void NetIoHandler::set_addr(const char *addr, uint16 port) {
-	_port = port;
-	kcommon::stringutil::smemcpy(_addr, addr, sizeof(_addr));
+NetIoHandler::~NetIoHandler() {
+	if (_fd > 0) {
+		::close(_fd);
+		_fd = -1;
+	}
 }
 
 int32 NetIoHandler::handle_input() {
@@ -47,19 +50,23 @@ int32 NetIoHandler::send(const char *data, uint32 len, bool immediately/* = true
 int32 NetIoHandler::disconnect() {
 	// TODO: how to handle the data left in recv buff and snd buff.
 	reactor()->remove_handler(get_handle());
+	::close(_fd);
+	_fd = -1;
 	_active = false;
 	return 0;
 }
 
 int32 NetIoHandler::reconnect() {
-	sockaddr_in addr;
-	::memset(&addr, 0, sizeof(addr));
-	socklen_t addr_len = sizeof(addr);
-	addr.sin_family = AF_INET;
-	addr.sin_port = htons(_port);
-	addr.sin_addr.s_addr = inet_addr(_addr);
+	if (_fd > 0) return 0;
 
-	int32 ret = ::connect(_fd, (sockaddr *)&addr, addr_len);
+	_fd = ::socket(AF_INET, SOCK_STREAM, 0);
+	if (_fd == -1) return -1;
+
+	// set none block
+	fcntl(_fd, F_SETFL, fcntl(_fd, F_GETFL) | O_NONBLOCK);
+
+	socklen_t addr_len = sizeof(sockaddr);
+	int32 ret = ::connect(_fd, (sockaddr *)_inet_addr.addr(), addr_len);
 	if (ret == 0) {
 		_active = true;
 		return reactor()->register_handler(this, IHandler::HET_Read | IHandler::HET_Write | IHandler::HET_Except);

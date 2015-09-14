@@ -4,7 +4,7 @@ AR  := ar rucs
 RM	:= rm -rf
 CFLAGS  := -Wall -g -m64
 #CFLAGS := -Wall -O2 -m64
-INCLUDE := -I. -I../common/ 
+INCLUDE := -I.
 LDFLAGS := -m64 -lpthread
 #LIBS    := ../../run/lib/libev.a ../../run/lib/libcommon.a ../../run/lib/libpublic.a \
 	../../run/lib/libluaLib.a ../../run/lib/libdbaccess.a  ../../run/lib/libmysqlclient.so ../../run/lib/libsnappy.a ../../run/lib/liblz4.a
@@ -12,7 +12,7 @@ LDFLAGS := -m64 -lpthread
 TARGETPATH := ../run/lib/
 $(shell mkdir -p $(TARGETPATH))
 #TARGET  := $(TARGETPATH)/test
-TARGET := $(TARGETPATH)/libreactor.a
+TARGET := $(TARGETPATH)/libcommon.a
 # 临时目标文件的存放路径
 OBJPATH := ./obj
 # 临时目录不存在时自动创建
