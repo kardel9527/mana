@@ -16,7 +16,7 @@ public:
 
 	virtual void reactor(Reactor *reactor) { _reactor = reactor; }
 
-	virtual IReactor* reactor() { return _reactor; }
+	virtual Reactor* reactor() { return _reactor; }
 
 	virtual int32 get_handle() { return 0; }
 

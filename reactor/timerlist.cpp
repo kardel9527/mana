@@ -11,7 +11,7 @@ TimerList::~TimerList() {
 	while (_head) {
 		Node *tmp = _head;
 		_head = _head->_next;
-		safe_delete(tmp);
+		sdelete(tmp);
 	}
 	
 	_head = 0;

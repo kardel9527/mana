@@ -10,7 +10,7 @@ NMS_BEGIN(kcommon)
 
 class Session;
 
-class SessionMgr : {
+class SessionMgr {
 public:
 	SessionMgr();
 	~SessionMgr();
@@ -27,7 +27,7 @@ public:
 
 private:
 	SessionMgr(const SessionMgr &other) {}
-	SessionMgr& operator (const SessionMgr &rh) { return *this; }
+	SessionMgr& operator = (const SessionMgr &rh) { return *this; }
 
 private:
 	void handle_connect_list();

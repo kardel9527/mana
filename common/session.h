@@ -49,7 +49,7 @@ public:
 
 	Session::SessionStatus status() { return _state; }
 
-	void type(int32 type) { _type = type; }
+	void type(int32 session_type) { _type = (Session::SessionType)session_type; }
 
 	void mgr(kcommon::SessionMgr *mgr) { _mgr = mgr; }
 

@@ -11,12 +11,12 @@ class Session;
 
 NMS_BEGIN(kcommon)
 
-class NetIoHandler : public IHandler {
+class NetIoHandler : public kevent::IHandler {
 public:
-	NetIoHandler() : _fd(-1), _active(true), _session(0) {}
+	NetIoHandler() : _fd(-1), _active(false), _session(0) {}
 	~NetIoHandler();
 
-	void redirect(int32 fd, const kcommon::InetAddr &addr) { _fd = fd; _inet_addr = addr; }
+	void redirect(int32 fd, const kcommon::InetAddr &addr) { _active = fd > 0; _fd = fd; _inet_addr = addr; }
 
 	void session(Session *session) { _session = session; }
 

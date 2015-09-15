@@ -11,7 +11,7 @@ public:
 	Reactor() {}
 	Reactor(IReactor *reactor, bool del) : _del(del), _impl(reactor) {}
 
-	~Reactor() { if (_del) safe_delete(_impl); }
+	~Reactor() { if (_del) sdelete(_impl); }
 
 	void open(IReactor *reactor, bool del) { _impl = reactor; _del = del; }
 

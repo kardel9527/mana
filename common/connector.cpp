@@ -6,7 +6,7 @@
 #include <string.h>
 #include <fcntl.h>
 #include <errno.h>
-#include "ireactor.h"
+#include "reactor.h"
 #include "stringutil.h"
 #include "netiohandler.h"
 #include "session.h"
@@ -21,7 +21,6 @@ Connector::~Connector() {
 	}
 
 	_interval = 0;
-	_conn_list.clear();
 }
 
 int32 Connector::open(uint32 interval) {
@@ -44,16 +43,16 @@ int32 Connector::connect(Session *s) {
 }
 
 int32 Connector::handle_timeout() {
-	Reactor *reactor = reactor();
-	kcommon::AutoLock guard(_conn_list);
+	kevent::Reactor *poller = reactor();
+	kcommon::AutoLock<LockType> guard(_conn_list);
 
 	uint32 size = _conn_list.avail();
-	for (uint32 it = 0; i < size; ++i) {
+	for (uint32 i = 0; i < size; ++i) {
 		Session *s = 0;
 		_conn_list.read(s);
 
 		kcommon::NetIoHandler *io_handler = s->io_handler();
-		io_handler->reactor(reactor);
+		io_handler->reactor(poller);
 
 		int32 ret = io_handler->reconnect();
 		if (ret > 0) {

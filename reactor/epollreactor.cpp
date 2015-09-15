@@ -18,7 +18,7 @@ EpollReactor::HandlerRepository::~HandlerRepository() {
 		HandlerEntry *entry = find(i);
 		if (entry) entry->_handler->handle_close();
 	}
-	safe_delete(_tuple);
+	sdelete(_tuple);
 }
 
 int32 EpollReactor::HandlerRepository::open(uint32 max_handler_sz) {
@@ -94,10 +94,7 @@ int32 EpollReactor::open(uint32 max_fd_sz, ITimerMgr *timer, SigMgr *sig) {
 }
 
 void EpollReactor::close() {
-	if (_epoll_fd != -1) {
-		::close(_epoll_fd);
-		_epoll_fd = -1;
-	}
+	sclose(_epoll_fd);
 }
 
 int32 EpollReactor::handle_events(timet interval/* = 0ull*/) {

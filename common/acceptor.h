@@ -9,7 +9,7 @@ NMS_BEGIN(kcommon)
 
 class SessionMgr;
 
-class Acceptor : public IHandler {
+class Acceptor : public kevent::IHandler {
 public:
 	Acceptor() : _sock(-1), _session_mgr(0) {}
 	virtual ~Acceptor();

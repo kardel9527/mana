@@ -8,7 +8,7 @@ template<typename T>
 class Singlegon {
 	static void create() { if (!_instance) _instance = new T(); }
 
-	static void destroy() { if (_instance) { delete _instance; _instance = NULL; } }
+	static void destroy() { sdelete(_instance); }
 
 	T* instance() { return _instance; }
 
@@ -16,7 +16,7 @@ private:
 	static T *_instance;
 };
 
-template<typename T> T *Singlegon::_instance = NULL;
+template<typename T> T *Singlegon<T>::_instance = 0;
 
 NMS_END // end namespace kcommon
 

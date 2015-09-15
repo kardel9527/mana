@@ -6,7 +6,7 @@ CFLAGS  := -Wall -g -m64
 #CFLAGS := -Wall -O2 -m64
 INCLUDE := -I. -I../../common/ -I../../reactor/ 
 LDFLAGS := -m64 -lpthread
-LIBS    := ../../run/lib/libreactor.a ../../run/lib/libcommon.a
+LIBS    := ../../run/lib/libcommon.a ../../run/lib/libreactor.a
 
 TARGETPATH := ../../run/
 $(shell mkdir -p $(TARGETPATH))

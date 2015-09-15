@@ -4,7 +4,7 @@
 #include <string.h>
 #include <fcntl.h>
 #include <errno.h>
-#include "ireactor.h"
+#include "reactor.h"
 #include "netiohandler.h"
 #include "session.h"
 #include "sessionmgr.h"
@@ -60,6 +60,7 @@ int32 Acceptor::handle_input() {
 		} else {
 			_session_mgr->handle_new_connect(s);
 		}
+		return 1;
 	}
 }
 

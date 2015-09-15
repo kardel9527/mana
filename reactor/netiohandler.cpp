@@ -5,7 +5,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <errno.h>
-#include "ireactor.h"
+#include "reactor.h"
 #include "bytebuffer.h"
 #include "stringutil.h"
 #include "session.h"
@@ -52,7 +52,7 @@ int32 NetIoHandler::handle_input() {
 }
 
 int32 NetIoHandler::handle_output() {
-	AutoLock guard(_snd_buff);
+	AutoLock<LockType> guard(_snd_buff);
 	return send_impl();
 }
 
@@ -110,7 +110,6 @@ int32 NetIoHandler::reconnect() {
 		return errno == EINPROGRESS ? 0 : -1;
 	}
 
-	_active = true;
 	return 0;
 }
 

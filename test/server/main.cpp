@@ -1,23 +1,18 @@
 #include <stdio.h>
-#include "reactor.h"
-#include "acceptor.h"
-#include "netiohandler.h"
-#include "epollreactor.h"
-#include "udt.h"
+#include <unistd.h>
+#include "sessionmgr.h"
+#include "service.h"
 
 using namespace kcommon;
 using namespace kevent;
 
 int32 main(int32 argc, char *argv[]) {
-	EpollReactor impl;
-	impl.open(1024, 0, 0);
-	Reactor reactor(&impl, false);
-	
-	Acceptor acceptor;
-	acceptor.reactor(reactor.impl());
-	acceptor.open("127.0.0.1", 7788);
+	InetAddr addr("127.0.0.1", 7788);
+	Service svc;
+	int32 ret = svc.open(addr, 1024, new kcommon::SessionMgr());
+	ret = svc.start();
 
-	reactor.begin_handle_events(50);
+	while (true) { sleep(20); svc.update(); }
 
 	return 0;
 }

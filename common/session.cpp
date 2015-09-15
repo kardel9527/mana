@@ -10,7 +10,7 @@ Session::~Session() {
 }
 
 void Session::on_recv(ReadBuffer *buff) {
-	AutoLock guard(_msg_queue);
+	AutoLock<LockType> guard(_msg_queue);
 	_msg_queue.write(buff);
 }
 
@@ -43,7 +43,7 @@ void Session::keep_alive() {
 }
 
 void Session::process_packet() {
-	AutoLock guard(_msg_queue);
+	AutoLock<LockType> guard(_msg_queue);
 	uint32 size = _msg_queue.avail();
 	for (uint32 i = 0; i < size; ++i) {
 		kcommon::ReadBuffer *buff;

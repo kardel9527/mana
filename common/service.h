@@ -7,9 +7,9 @@
 #include "reactor.h"
 #include "singleton.h"
 
-class Service : public Singlegon<Service> {
+class Service : public kcommon::Singlegon<Service> {
 public:
-	Service()
+	Service();
 	~Service();
 
 	int32 open(uint32 max_connection, kcommon::SessionMgr *mgr);
@@ -24,7 +24,7 @@ public:
 
 	void connect(const kcommon::InetAddr &addr, int32 session_type);
 
-	static void io_routine(void *arg);
+	static void* io_routine(void *arg);
 
 private:
 	Service(const Service &other) {}

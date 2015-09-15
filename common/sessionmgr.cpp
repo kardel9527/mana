@@ -2,13 +2,19 @@
 #include "session.h"
 #include "sessionmgr.h"
 
+NMS_BEGIN(kcommon)
+
+SessionMgr::SessionMgr() {}
+
+SessionMgr::~SessionMgr() {}
+
 void SessionMgr::handle_new_connect(Session *s) {
-	AutoLock guard(_connected);
+	AutoLock<LockType> guard(_connected);
 	_connected.write(s);
 }
 
 void SessionMgr::handle_disconnect(Session *s) {
-	AutoLock guard(_disconnected);
+	AutoLock<LockType> guard(_disconnected);
 	_disconnected.write(s);
 }
 
@@ -22,7 +28,7 @@ void SessionMgr::update()
 }
 
 Session* SessionMgr::create(int32 type) {
-	return New Session();
+	return new Session();
 }
 
 void SessionMgr::destroy(Session *s) {
@@ -31,7 +37,7 @@ void SessionMgr::destroy(Session *s) {
 
 // TODO: when handle connect, the io handler was already closed
 void SessionMgr::handle_connect_list() {
-	AutoLock guard(_connected);
+	AutoLock<LockType> guard(_connected);
 	uint32 size = _connected.avail();
 	for (uint32 i = 0; i < size; ++i) {
 		Session *session = 0;
@@ -44,7 +50,7 @@ void SessionMgr::handle_connect_list() {
 }
 
 void SessionMgr::handle_disconnect_list() {
-	AutoLock guard(_disconnected);
+	AutoLock<LockType> guard(_disconnected);
 	uint32 size = _disconnected.avail();
 	for (uint32 i = 0; i < size; ++i) {
 		Session *session = 0;
@@ -64,4 +70,6 @@ void SessionMgr::update_session() {
 		it->second->update();
 	}
 }
+
+NMS_END // end namespace kcommon
 

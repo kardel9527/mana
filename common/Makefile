@@ -4,7 +4,7 @@ AR  := ar rucs
 RM	:= rm -rf
 CFLAGS  := -Wall -g -m64
 #CFLAGS := -Wall -O2 -m64
-INCLUDE := -I.
+INCLUDE := -I. -I../reactor/
 LDFLAGS := -m64 -lpthread
 #LIBS    := ../../run/lib/libev.a ../../run/lib/libcommon.a ../../run/lib/libpublic.a \
 	../../run/lib/libluaLib.a ../../run/lib/libdbaccess.a  ../../run/lib/libmysqlclient.so ../../run/lib/libsnappy.a ../../run/lib/liblz4.a

@@ -4,6 +4,7 @@
 #include <string.h>
 #include "macros.h"
 #include "lock.h"
+#include "petty.h"
 #include "udt.h"
 
 NMS_BEGIN(kcommon)
@@ -21,8 +22,8 @@ public:
 		if (space() < len) resize(_capacity + len);
 
 		uint32 post = min(len, _capacity - _wr_idx % _capacity);
-		::memcpy(_data + _wr_idx % _capacity, data, post);
-		::memcpy(_data, data + post, len - post);
+		::memcpy(_data + _wr_idx % _capacity, data, post * sizeof(T));
+		::memcpy(_data, data + post, (len - post) * sizeof(T));
 
 		_wr_idx += len;
 
@@ -37,14 +38,14 @@ public:
 		return ret;
 	}
 
-	void read(T &data) { read(data, 1); }
+	void read(T &data) { read(&data, 1); }
 
 	uint32 peek(T *data, uint32 len) {
 		len = min(len, avail());
 		uint32 post = min(len, _capacity - _rd_idx % _capacity);
 
-		::memcpy(data, _data + _rd_idx % _capacity, post);
-		::memcpy(data + post, _data, len - post);
+		::memcpy(data, _data + _rd_idx % _capacity, post * sizeof(T));
+		::memcpy(data + post, _data, (len - post) * sizeof(T));
 
 		return len;
 	}
@@ -60,7 +61,7 @@ public:
 	uint32 space() { return _capacity - (_wr_idx - _rd_idx); }
 
 	void resize(uint32 n) {
-		_data = (char *)::realloc(_data, n * sizeof(T));
+		_data = (T *)::realloc(_data, n * sizeof(T));
 		_capacity = n;
 	}
 

@@ -8,7 +8,7 @@
 
 NMS_BEGIN(kcommon)
 
-class Connector : public IHandler {
+class Connector : public kevent::IHandler {
 public:
 	Connector() : _timer_id(0), _interval(15){}
 	~Connector();
