@@ -10,22 +10,28 @@ void NetIoHandler::set_addr(const char *addr, uint16 port) {
 	kcommon::stringutil::smemcpy(_addr, addr, sizeof(_addr));
 }
 
-int32 NetIoHandler::get_handle() { return _fd; }
+int32 NetIoHandler::handle_input() {
+	return 0;
+}
 
-void NetIoHandler::set_handle(int32 hid) { _fd = hid; }
+int32 NetIoHandler::handle_output() {
+	return 0;
+}
 
-int32 NetIoHandler::handle_input();
+int32 NetIoHandler::send(const char *data, uint32 len, bool immediately/* = true*/) {
+	return 0;
+}
 
-int32 NetIoHandler::handle_output();
+int32 NetIoHandler::disconnect() {
+	return 0;
+}
 
-int32 NetIoHandler::send(const char *data, uint32 len, bool immediately/* = true*/);
-
-int32 NetIoHandler::disconnect();
-
-int32 NetIoHandler::reconnect();
+int32 NetIoHandler::reconnect() {
+	return 0;
+}
 
 bool NetIoHandler::is_active() {
-
+	return false;
 }
 
 NMS_END // end namespace kevent

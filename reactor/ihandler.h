@@ -26,7 +26,7 @@ public:
 
 	virtual int32 handle_output() { return 0; }
 
-	virtual int32 hanlde_error() { return 0; }
+	virtual int32 handle_error() { return 0; }
 
 	virtual int32 handle_close() { return 0; }
 

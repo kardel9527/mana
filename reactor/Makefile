@@ -9,7 +9,7 @@ LDFLAGS := -m64 -lpthread
 #LIBS    := ../../run/lib/libev.a ../../run/lib/libcommon.a ../../run/lib/libpublic.a \
 	../../run/lib/libluaLib.a ../../run/lib/libdbaccess.a  ../../run/lib/libmysqlclient.so ../../run/lib/libsnappy.a ../../run/lib/liblz4.a
 
-TARGETPATH := ./ 
+TARGETPATH := ./bin/
 $(shell mkdir -p $(TARGETPATH))
 #TARGET  := $(TARGETPATH)/test
 TARGET := $(TARGETPATH)/reactor.lib

@@ -1,14 +1,16 @@
+#include <assert.h>
+#include <time.h>
 #include "ihandler.h"
 #include "timerlist.h"
 
-NMS_BEGIN(kcommon)
+NMS_BEGIN(kevent)
 
 TimerList::TimerList() : _head(0), _seed(0) {}
 
 TimerList::~TimerList() {
 	while (_head) {
 		Node *tmp = _head;
-		_head = _head->next;
+		_head = _head->_next;
 		safe_delete(tmp);
 	}
 	
@@ -16,7 +18,7 @@ TimerList::~TimerList() {
 	_seed = 0;
 }
 
-int32 TimerList::add(uint32 delay, uint32 interval, IHandler *handler) {
+int32 TimerList::add(timet delay, timet interval, IHandler *handler) {
 	assert(handler);
 	Node *node = new Node();
 	node->_id = _seed;
@@ -34,13 +36,13 @@ void TimerList::remove(int32 id) {
 	Node *prev = _head;
 	Node *curr = _head;
 	while (curr) {
-		if (curr->_id == id) {
+		if (curr->_id == (uint32)id) {
 			if (curr == _head)
 				_head = curr->_next;
 			else
 				prev->_next = curr->_next;
 			
-			curr->__handler->handle_close();
+			curr->_handler->handle_close();
 			delete curr;
 			break;
 		}

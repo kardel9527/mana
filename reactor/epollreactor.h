@@ -1,22 +1,16 @@
 #ifndef __EPOLL_REACTOR_H_
 #define __EPOLL_REACTOR_H_
-#include "../common/udt.h"
-#include "../common/macros.h"
-#include "../common/lock.h"
+#include "udt.h"
+#include "macros.h"
 #include "ireactor.h"
-
-NMS_BEGIN(kcommon)
-class ITimerMgr;
-class SigMgr;
-NMS_END
 
 NMS_BEGIN(kevent)
 
-class EPollReactor : public IReactor {
+class EpollReactor : public IReactor {
 	struct HandlerEntry { IHandler *_handler; int32 _mask; bool _suspend; HandlerEntry() : _handler(0), _mask(0), _suspend(false) {} };
 	class HandlerRepository {
 	public:
-		HandlerRepository() : _max(0), _size(0), _tuple(0) {}
+		HandlerRepository() : _size(0),_capacity(0), _tuple(0) {}
 		~HandlerRepository();
 
 		int32 open(uint32 max_handler_sz);
@@ -33,20 +27,20 @@ class EPollReactor : public IReactor {
 
 	private:
 		uint32 _size;
-		uint32 _max_size;
+		uint32 _capacity;
 		HandlerEntry *_tuple;
 	};
 
 public:
-	EPollReactor();
+	EpollReactor();
 
-	virtual ~EPollReactor();
+	virtual ~EpollReactor();
 
-	virtual int32 open(uint32 max_fd_sz, kcommon::ITimerMgr *timer, kcommon::SigMgr *sig);
+	virtual int32 open(uint32 max_fd_sz, ITimerMgr *timer, SigMgr *sig);
 
 	virtual void close();
 
-	virtual int32 handle_events(timeval interval = 0ull);
+	virtual int32 handle_events(timet interval = 0ull);
 
 	virtual bool is_active();
 
@@ -63,16 +57,16 @@ public:
 
 	virtual int32 resume_handler(int32 hid);
 
-	virtual int32 register_timer(IHandler *handler, timeval start_time, timeval interval);
+	virtual int32 register_timer(IHandler *handler, timet start_time, timet interval);
 
 	virtual int32 cancel_timer(int32 tid);
 
 private:
-	EPollReactor(const EPollReactor &other) {}
-	EPollReactor& operator = (const EPollReactor &other) { return *this; }
+	EpollReactor(const EpollReactor &other) {}
+	EpollReactor& operator = (const EpollReactor &other) { return *this; }
 
 private:
-	int32 transform_mask(int32 mask);
+	int32 epoll_mask(int32 mask);
 
 private:
 	int32 _epoll_fd;

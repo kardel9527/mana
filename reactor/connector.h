@@ -25,7 +25,7 @@ private:
 	int32 _timer_id;
 	uint32 _interval;
 	uint16 _port;
-	char *_addr[64];
+	char _addr[64];
 	int32 _sock;
 };
 

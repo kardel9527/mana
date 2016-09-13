@@ -3,7 +3,7 @@
 #include "udt.h"
 #include "macros.h"
 
-NMS_BEGIN(kcommon)
+NMS_BEGIN(kevent)
 
 class IHandler;
 
@@ -12,7 +12,7 @@ public:
 	virtual ~ITimerMgr() {}
 
 	// deleay in s, interval in micro seconds, interval requal 0 means not repeat
-	virtual int32 add(timeval delay, timeval interval, IHandler *handler) { return 0; }
+	virtual int32 add(timet delay, timet interval, IHandler *handler) { return 0; }
 
 	virtual void remove(int32 id) {}
 

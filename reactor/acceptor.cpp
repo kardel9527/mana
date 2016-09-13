@@ -1,7 +1,11 @@
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <netinet/in.h>
 #include <unistd.h>
+#include <string.h>
+#include <arpa/inet.h>
 #include <fcntl.h>
+#include <errno.h>
 #include "ireactor.h"
 #include "netiohandler.h"
 #include "acceptor.h"
@@ -13,11 +17,10 @@ Acceptor::~Acceptor() {
 		::close(_sock);
 		_sock = -1;
 	}
-	_reactor = NULL;
 }
 
 int32 Acceptor::open(const char *addr, uint16 port) {
-	_sock = ::socket(AF_INET, SOCK_STEAM, 0);
+	_sock = ::socket(AF_INET, SOCK_STREAM, 0);
 	if (_sock == -1) return -1;
 
 	// none block
@@ -38,15 +41,15 @@ int32 Acceptor::open(const char *addr, uint16 port) {
 	if (ret) return ret;
 
 	// register to reactor
-	return reactor()->regist_handle(this, IHandler::HET_Read | IHandler::HET_Except);
+	return reactor()->register_handler(this, IHandler::HET_Read | IHandler::HET_Except);
 }
 
 int32 Acceptor::handle_input() {
 	sockaddr_in addr;
-	mmeset(&addr, 0, sizeof(addr));
-	int32 addr_len = sizeof(addr);
+	memset(&addr, 0, sizeof(addr));
+	socklen_t addr_len = sizeof(addr);
 
-	int32 fd = ::accept(_sock, &addr, &addr_len);
+	int32 fd = ::accept(_sock, (sockaddr *)&addr, &addr_len);
 	if (fd == -1) {
 		return (errno == EAGAIN || errno == EWOULDBLOCK) ? 0 : -1;
 	} else {
@@ -56,7 +59,7 @@ int32 Acceptor::handle_input() {
 		// get a handler and register into reactor.
 		NetIoHandler *handler = new NetIoHandler();
 		handler->set_handle(fd);
-		handler->set_addr(inet_ntoa(addr.sin_addr.s_addr), addr.sin_port);
+		handler->set_addr(inet_ntoa(addr.sin_addr), addr.sin_port);
 		handler->reactor(reactor());
 
 		// TODO: when register failed?
