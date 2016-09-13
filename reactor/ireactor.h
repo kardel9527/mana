@@ -10,16 +10,19 @@ class SigMgr;
 NMS_END // kcommon
 
 NMS_BEGIN(kevent)
+class ITimerMgr;
+class IHandler;
+class SigMgr;
 
 class IReactor {
 public:
 	virtual ~IReactor() {}
 
-	virtual int32 open(uint32 max_fd_sz, kcommon::ITimerMgr *timer, kcommon::SigMgr *sig) { return -1; }
+	virtual int32 open(uint32 max_fd_sz, ITimerMgr *timer, SigMgr *sig) { return -1; }
 
 	virtual void close() {}
 
-	virtual int32 handle_events(timeval interval = 0ull) { return -1; }
+	virtual int32 handle_events(timet interval = 0ull) { return -1; }
 
 	virtual bool is_active() { return false; }
 
@@ -36,7 +39,7 @@ public:
 
 	virtual int32 resume_handler(int32 hid) { return -1; }
 
-	virtual int32 register_timer(IHandler *handler, timeval start_time, timeval interval) { return -1; }
+	virtual int32 register_timer(IHandler *handler, timet start_time, timet interval) { return -1; }
 
 	virtual int32 cancel_timer(int32 tid) { return -1; }
 };

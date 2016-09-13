@@ -11,7 +11,7 @@ public:
 	enum HandlerEventType { HET_Read = 0x0001, HET_Write = 0x0002, HET_Except = 0x0004 };
 
 public:
-	IReactor() : _reactor(0) {}
+	IHandler() : _reactor(0) {}
 	virtual ~IHandler() {}
 
 	virtual void reactor(IReactor *ireactor) { _reactor = ireactor; }

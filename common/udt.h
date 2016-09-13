@@ -17,7 +17,7 @@ typedef long long int64;
 typedef unsigned long long uint64;
 
 // unix time stamp in micro second
-typedef unsigned long long timeval;
+typedef unsigned long long timet;
 
 #endif // __USER_DEFINED_TYPES_H_
 
