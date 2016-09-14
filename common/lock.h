@@ -34,12 +34,15 @@ private:
 template<typename LOCK = DefaultLock>
 class AutoLock : public LOCK {
 public:
-	AutoLock() { LOCK::lock(); }
-	~AutoLock() { LOCK::unlock(); }
+	AutoLock(LOCK &lock) : _lock(lock) { _lock.lock(); }
+	~AutoLock() { _lock.unlock(); }
 
 private:
 	AutoLock(const AutoLock &other) {}
 	AutoLock& operator = (const AutoLock &other) { return *this; }
+
+private:
+	LOCK &_lock;
 };
 
 NMS_END // end namespace kcommon

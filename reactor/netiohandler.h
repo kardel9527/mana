@@ -3,12 +3,14 @@
 #include "macros.h"
 #include "udt.h"
 #include "ihandler.h"
+#include "ringbuffer.h"
+#include "lock.h"
 
 NMS_BEGIN(kevent)
 
 class NetIoHandler : public IHandler {
 public:
-	NetIoHandler() : _fd(-1), _port(0) {}
+	NetIoHandler() : _fd(-1), _port(0), _active(true) {}
 	~NetIoHandler();
 
 	void set_addr(const char *addr, uint16 port);
@@ -33,6 +35,11 @@ private:
 	int32 _fd;
 	uint16 _port;
 	char _addr[64];
+	bool _active;
+	RingBuffer _snd_buff;
+	kcommon::Mutex _snd_lock;
+	RingBuffer _rcv_buff;
+	kcommon::Mutex _rcv_lock;
 };
 
 NMS_END // end namespace kevent
