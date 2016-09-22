@@ -4,7 +4,7 @@
 #include "macros.h"
 #include "udt.h"
 #include "lock.h"
-#include "FastQueue.h"
+#include "fastqueue.h"
 
 NMS_BEGIN(kcommon)
 

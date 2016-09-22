@@ -34,7 +34,7 @@ int32 Session::send(const char *data, int32 len, bool immediately/* = false*/) {
 	return _io_handler->send(data, len, immediately);
 }
 
-void Session::kickoff() {m
+void Session::kickoff() {
 	if (!_io_handler->is_active()) return ;
 
 	_io_handler->disconnect();

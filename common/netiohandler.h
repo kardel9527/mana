@@ -7,9 +7,8 @@
 #include "inetaddr.h"
 #include "lock.h"
 
-class Session;
-
 NMS_BEGIN(kcommon)
+class Session;
 
 class NetIoHandler : public kevent::IHandler {
 public:
@@ -18,7 +17,7 @@ public:
 
 	void redirect(int32 fd, const kcommon::InetAddr &addr) { _active = fd > 0; _fd = fd; _inet_addr = addr; }
 
-	void session(Session *session) { _session = session; }
+	void session(kcommon::Session *session) { _session = session; }
 
 	virtual int32 get_handle() { return _fd; }
 

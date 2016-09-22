@@ -13,14 +13,14 @@ public:
 	FastQueue& operator = (const FastQueue &rh) { RingBuffer<T, Lock>::operator = (rh); return *this; }
 	~FastQueue() {}
 
-	uint32 size() { return avail(); }
+	uint32 size() { return RingBuffer<T, Lock>::avail(); }
 
-	bool empty() { return avail() == 0; }
+	bool empty() { return RingBuffer<T, Lock>::avail() == 0; }
 
 	// todo
-	T pop() { T ret; read(ret); return ret; }
+	T pop() { T ret; RingBuffer<T, Lock>::read(ret); return ret; }
 
-	void push(const T &t) { write(t); }
+	void push(const T &t) { RingBuffer<T, Lock>::write(t); }
 };
 
 NMS_END // end namespace kcommon
