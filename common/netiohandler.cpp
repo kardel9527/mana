@@ -39,9 +39,11 @@ int32 NetIoHandler::handle_input() {
 	while (_rcv_buff.avail() >= (packet_size + sizeof(packet_size))) {
 		// TODO: avoid alloc and copy?
 		kcommon::ReadBuffer *buffer = new kcommon::ReadBuffer();
-		buffer->resize(packet_size + sizeof(packet_size));
+		buffer->resize(packet_size);
+		_rcv_buff.rd_move(sizeof(packet_size));
 
-		_rcv_buff.read(buffer->wr_ptr(), packet_size + sizeof(packet_size));
+		_rcv_buff.read(buffer->wr_ptr(), packet_size);
+		buffer->wr_move(packet_size);
 		_session->on_recv(buffer);
 
 		packet_size = 0;
@@ -95,17 +97,20 @@ int32 NetIoHandler::disconnect() {
 int32 NetIoHandler::reconnect() {
 	if (is_active()) return 0;
 
-	_fd = ::socket(AF_INET, SOCK_STREAM, 0);
-	if (_fd == -1) return -1;
+	if (_fd == - 1) {
+		_fd = ::socket(AF_INET, SOCK_STREAM, 0);
+		if (_fd == -1) return -1;
 
-	// set none block
-	fcntl(_fd, F_SETFL, fcntl(_fd, F_GETFL) | O_NONBLOCK);
+		// set none block
+		fcntl(_fd, F_SETFL, fcntl(_fd, F_GETFL) | O_NONBLOCK);
+	}
 
 	socklen_t addr_len = sizeof(sockaddr);
 	int32 ret = ::connect(_fd, (sockaddr *)_inet_addr.addr(), addr_len);
 	if (ret == 0) {
 		_active = true;
-		return reactor()->register_handler(this, IHandler::HET_Read | IHandler::HET_Write | IHandler::HET_Except);
+		int32 ret = reactor()->register_handler(this, IHandler::HET_Read | IHandler::HET_Write | IHandler::HET_Except);
+		return ret == 0 ? 1 : -1;
 	} else if (ret == -1) {
 		return errno == EINPROGRESS ? 0 : -1;
 	}

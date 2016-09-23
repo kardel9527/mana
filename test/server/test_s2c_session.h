@@ -5,7 +5,7 @@
 
 class TestS2CSession : public kcommon::Session {
 public:
-	virtual void handle_packet(ReadBuffer *packet);
+	virtual void handle_packet(kcommon::ReadBuffer *packet);
 
 	virtual void handle_connect();
 

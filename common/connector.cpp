@@ -57,7 +57,7 @@ int32 Connector::handle_timeout() {
 		io_handler->reactor(poller);
 
 		int32 ret = io_handler->reconnect();
-		if (ret == 0) {
+		if (ret > 0) {
 			// connect successfully
 			s->mgr()->handle_new_connect(s);
 		} else {

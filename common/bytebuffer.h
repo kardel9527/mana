@@ -39,6 +39,8 @@ public:
 
 	char* wr_ptr() { return _data + _wr_idx; }
 
+	void wr_move(uint32 n) { _wr_idx += n; }
+
 private:
 	char *_data;
 	uint32 _capacity;
@@ -51,6 +53,10 @@ public:
 	ReadBuffer(const char *data, uint32 len) : ByteBuffer(data, len) {}
 
 	ReadBuffer& operator >> (std::string &str) {
+		uint32 size = 0;
+		*this >> size;
+		str.resize(size);
+		read((char *)str.c_str(), size);
 		return *this;
 	}
 
