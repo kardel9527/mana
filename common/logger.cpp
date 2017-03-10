@@ -16,7 +16,7 @@ static const char *s_level_desc[] = {
 	"DEBUG",
 };
 
-Logger::~Logger(LogLevel limit) {
+Logger::~Logger() {
 	if (_fp) { ::fclose(_fp); _fp = 0; }
 	_active = false;
 	_last_create_time = 0;
@@ -24,7 +24,7 @@ Logger::~Logger(LogLevel limit) {
 	_thread = 0;
 }
 
-int32 Logger::open() {
+int32 Logger::open(LogLevel limit) {
 	log_file_checking();
 	if (!_fp) return -1;
 
@@ -60,7 +60,8 @@ void Logger::log(const char *module, const char *file, const char *func, uint32 
 		tnow.tm_hour,
 		tnow.tm_min,
 		tnow.tm_sec,
-		s_level_desc[lv];
+		s_level_desc[lv],
+		module,
 		file,
 		func,
 		line);
@@ -81,7 +82,7 @@ void Logger::log_file_checking() {
 	if (_last_create_time && ktimeutil::check_is_same_day(now, _last_create_time)) return ;
 
 	char buff[128] = { 0 };
-	struct tm tnow = *::localtime(&now);
+	struct tm tnow = *::localtime((time_t *)&now);
 	sprintf(buff, "./log/%04d-%02d-%02d.log", tnow.tm_year + 1900, tnow.tm_mon + 1, tnow.tm_mday);
 
 	if (_fp) ::fclose(_fp);
@@ -99,6 +100,8 @@ void Logger::flush() {
 		int32 len = _log_buffer.read(buffer, sizeof(buffer));
 		::fwrite(buffer, len, sizeof(char), _fp);
 	}
+
+	::fflush(_fp);
 
 	_log_buffer.unlock();
 }

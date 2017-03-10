@@ -8,3 +8,4 @@ rm -rf ./run/client;
 rm -rf ./run/server;
 rm -rf ./run/lib/*;
 rm -rf ./run/core*;
+rm -rf ./run/log;

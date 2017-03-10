@@ -6,7 +6,8 @@
 #include "singleton.h"
 #include "ringbuffer.h"
 
-struct FILE;
+struct _IO_FILE;
+typedef struct _IO_FILE FILE;
 
 NMS_BEGIN(klog)
 
@@ -20,9 +21,9 @@ enum LogLevel {
 	LL_MAX
 };
 
-class Logger : public kcommon::Singleton<Logger> {
+class Logger : public kcommon::Singleton<klog::Logger> {
 public:
-	Logger() : _fp(0), _active(false), _last_create_time(0), _limit(LL_MAX), _thread(0) {}
+	Logger() : _fp(0), _active(false), _limit(LL_MAX), _last_create_time(0), _thread(0) {}
 	~Logger();
 
 	int32 open(LogLevel limit);
@@ -47,7 +48,7 @@ private:
 	bool _active;
 	LogLevel _limit;
 	uint64 _last_create_time;
-	uint32_t _thread;
+	uint32 _thread;
 	kcommon::RingBuffer<char> _log_buffer;
 };
 

@@ -6,6 +6,7 @@ NMS_BEGIN(kcommon)
 
 template<typename T>
 class Singleton {
+public:
 	static void create() { if (!_instance) _instance = new T(); }
 
 	static void destroy() { sdelete(_instance); }
