@@ -1,18 +1,17 @@
 #ifndef __OBJECT_POOL_H_
 #define __OBJECT_POOL_H_
 #include <string.h>
-#include <asset.h>
+#include <assert.h>
 #include "macros.h"
 #include "udt.h"
 #include "petty.h"
-#include "singleton.h"
 #include "lock.h"
 
 NMS_BEGIN(kmem)
 
 template<typename Lock = LockType>
 class ObjectBuffer : public Lock {
-	union Block { Block *_next; char *_data; Block() : _next(0), _data(0); };
+	union Block { Block *_next; char *_data; Block() : _next(0), _data(0) {} };
 public:
 	ObjectBuffer() : _size(0), _free(0) {}
 	ObjectBuffer(uint32 size) : _size(size), _free(0) {}
@@ -52,7 +51,7 @@ private:
 // object pool, default from 4 byte ~ 8 mega bytes.
 // notice that each ptr will take 1 byte to save the align used for dealloc
 template<uint32 MIN_ALIGN = 2, uint32 MAX_ALIGN = 23, typename Lock = LockType>
-class ObjectPool : public Singleton<ObjectPool> {
+class ObjectPool {
 public:
 	ObjectPool() { for (uint32 i = MIN_ALIGN; i <= MAX_ALIGN; ++i) _pool[i - MIN_ALIGN].set_block_size((1u << i) + 1); }
 	~ObjectPool() {}
@@ -79,7 +78,7 @@ private:
 	ObjectPool& operator = (const ObjectPool &rh) { return *this; }
 
 private:
-	ObjectBuffer _pool[MAX_ALIGN - MIN_ALIGN + 1];
+	ObjectBuffer<Lock> _pool[MAX_ALIGN - MIN_ALIGN + 1];
 };
 
 NMS_END // end namespace kmem

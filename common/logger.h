@@ -48,7 +48,7 @@ private:
 	bool _active;
 	LogLevel _limit;
 	uint64 _last_create_time;
-	uint32 _thread;
+	unsigned long _thread;
 	kcommon::RingBuffer<char> _log_buffer;
 };
 

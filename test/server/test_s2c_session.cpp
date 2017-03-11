@@ -20,7 +20,7 @@ void TestS2CSession::handle_packet(kcommon::ReadBuffer * packet) {
 	std::string text;
 	s_num ++;
 	*packet >> text;
-	LOG_DEBUG("session", "[id:%d, type:%d] received packet [order:%d, text:%s].", s_num, text.c_str());
+	LOG_DEBUG("session", "[id:%d, type:%d] received packet [order:%d, text:%s].", id(), type(), s_num, text.c_str());
 }
 
 kcommon::Session* SessionMgrTest::create(int32 type) {

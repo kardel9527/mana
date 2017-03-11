@@ -1,15 +1,19 @@
 #ifndef __OBJECT_H_
 #define __OBJECT_H_
+#include <stdlib.h>
 #include "macros.h"
+#include "udt.h"
 #include "objectpool.h"
 
-NMS_BEGIN(kmem)
-
 #define ALLOCATE_TRACE
-
 #ifdef ALLOCATE_TRACE
 #include <map>
 #include <string>
+#endif // ALLOCATE_TRACE
+
+NMS_BEGIN(kmem)
+
+#ifdef ALLOCATE_TRACE
 class AllocateRecorder {
 	struct Entry {
 		std::string _file;
@@ -65,16 +69,11 @@ public:
 	static void dealloc(void *ptr) { _allocator.dealloc(ptr); }
 
 private:
-	static ObjectPool<2, 23> _allocator;
+	static kmem::ObjectPool<2, 23, LockType> _allocator;
 #ifdef ALLOCATE_TRACE
 	static AllocateRecorder _recorder;
 #endif // ALLOCATE_TRACE
 };
-
-ObjectPool<2, 23> ObjectPoolAllocator::_allocator;
-#ifdef ALLOCATE_TRACE
-AllocateRecorder ObjectPoolAllocator::_recorder;
-#endif // ALLOCATE_TRACE
 
 class DefaultAllocator {
 public:
@@ -102,10 +101,6 @@ private:
 	static AllocateRecorder _recorder;
 #endif // ALLOCATE_TRACE
 };
-
-#ifdef ALLOCATE_TRACE
-AllocateRecorder DefaultAllocator::_recorder;
-#endif // #ifdef ALLOCATE_TRACE
 
 template<typename Allocator>
 class Object {
@@ -144,7 +139,7 @@ public:
 	}
 };
 
-typedef Object<ObjectPoolAllocator> PoolOBject;
+typedef Object<ObjectPoolAllocator> PoolObject;
 typedef Object<DefaultAllocator> DefaultObject;
 
 NMS_END // end namespace kmem

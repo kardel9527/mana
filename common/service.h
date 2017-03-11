@@ -32,10 +32,10 @@ private:
 	Service& operator = (const Service &rh) { return *this; }
 
 private:
-	int32 _io_thread;
+	unsigned long _io_thread;
+	kevent::Reactor _reactor;
 	kcommon::Acceptor _acceptor;
 	kcommon::Connector _connector;
-	kevent::Reactor _reactor;
 	kcommon::SessionMgr *_s_mgr;
 };
 

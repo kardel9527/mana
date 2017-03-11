@@ -16,7 +16,7 @@ public:
 	ByteBuffer(const char *data, uint32 len) : _data(0), _capacity(len), _wr_idx(0), _rd_idx(0) {}
 	ByteBuffer(const ByteBuffer &other) { reset(); write(other._data + other._rd_idx, other._wr_idx - other._rd_idx); }
 	ByteBuffer& operator = (const ByteBuffer &rh) { reset(); write(rh._data + rh._rd_idx, rh._wr_idx - rh._rd_idx); return *this; }
-	~ByteBuffer() { sdelete(_data); };
+	~ByteBuffer() { if (_data) { kmem::ObjectPoolAllocator::dealloc(_data); _data = NULL; } };
 
 	void reset() { _wr_idx = _rd_idx = 0; }
 
@@ -34,10 +34,15 @@ public:
 	}
 
 	void resize(uint32 len) {
-		char *data = K_NEW_D char[len];
+		char *data = (char *)kmem::ObjectPoolAllocator::alloc(len);
 		uint32 copy_size = len > _capacity ? _capacity : len;
-		::memcpy(data, _data, copy_size);
-		sdelete(_data);
+		if (_data && copy_size) {
+			::memcpy(data, _data, copy_size);
+		}
+
+		if (_data) {
+			kmem::ObjectPoolAllocator::dealloc(_data);
+		}
 		_data = data;
 		_capacity = len;
 	}
