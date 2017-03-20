@@ -7,49 +7,48 @@
 
 class RingBuffer {
 public:
-	RingBuffer() : _capacity(1024), _length(0), _wr_idx(0), _rd_idx(0) { _data = (char *)::malloc(_capacity); }
-	RingBuffer(uint32 n) : _capacity(n), _length(0), _wr_idx(0), _rd_idx(0) { _data = (char *)::malloc(_capacity); }
-	RingBuffer(const RingBuffer &other) : _capacity(other._capacity), _length(other._length), _wr_idx(other._wr_idx), _rd_idx(other._rd_idx) { _data = (char *)::malloc(_capacity); }
-	RingBuffer& operator = (const RingBuffer &rh) { _capacity = rh._capacity; _length = rh._length; _wr_idx = rh._wr_idx; _rd_idx = rh._rd_idx; _data = (char *)::malloc(_capacity); return *this; }
-	~RingBuffer() { _capacity = 0; _length = 0; _wr_idx = 0; _rd_idx = 0; safe_free(_data); }
+	RingBuffer() : _capacity(1024), _wr_idx(0), _rd_idx(0) { _data = (char *)::malloc(_capacity); }
+	RingBuffer(uint32 n) : _capacity(n), _wr_idx(0), _rd_idx(0) { _data = (char *)::malloc(_capacity); }
+	RingBuffer(const RingBuffer &other) { *this = other;}
+	RingBuffer& operator = (const RingBuffer &rh) { _capacity = rh._capacity; _wr_idx = rh._wr_idx; _rd_idx = rh._rd_idx; _data = (char *)::malloc(_capacity); return *this; }
+	~RingBuffer() { _capacity = 0; _wr_idx = 0; _rd_idx = 0; sfree(_data); }
 
 
-	void write(const char *data, uint32 len) {
-		if ((_capacity - length()) < len) resize(_capacity + len *2);
-		uint32 left = len;
-		while (left > 0) {
-			uint32 wr_len = left > space() ? space() : left;
-			memcpy(_data + _wr_idx, data + len - left, wr_len);
-			wr_move(wr_len);
-			left -= wr_len;
-		}
+	uint32 write(const char *data, uint32 len) {
+		if (space() < len) resize(_capacity + len * 2);
+
+		uint32 post = min(len, _capacity - _wr_idx % _capacity);
+		::memcpy(_data + _wr_idx % _capacity, data, post);
+		::memcpy(_data, data + post, len - post);
+
+		_wr_idx += len;
+
+		return len;
 	}
 
-	uint32 length() { return _length; }
+	uint32 read(char *data, uint32 len) {
+		uint32 ret = peek(data, len);
+		_rd_idx += ret;
+		return ret;
+	}
+
+	uint32 peek(char *data, uint32 len) {
+		len = min(len, avail());
+		uint32 post = min(len, _capacity - _rd_idx % _capacity);
+
+		::memcpy(data, _data + _rd_idx % _capacity, post);
+		::memcpy(data + post, _data, len - post);
+
+		return len;
+	}
 
 	// space can read.
-	uint32 avail() {
-		if (_rd_idx < _wr_idx) return _wr_idx - _rd_idx;
-		if (_rd_idx > _wr_idx) return _capacity - _rd_idx;
-		if (_rd_idx == _wr_idx) return _capacity - _rd_idx;
-		return 0;
-	}
+	uint32 avail() { return _wr_idx - _rd_idx; }
 
-	void rd_move(uint32 n) { _rd_idx = (_rd_idx + n) % _capacity; _length -= n; }
-
-	char* rd_ptr() { return _data + _rd_idx; }
+	void rd_move(uint32 n) { _rd_idx += n; }
 
 	// space for write
-	uint32 space() {
-		if (_wr_idx > _rd_idx) return _capacity - _wr_idx;
-		if (_wr_idx < _rd_idx) return _rd_idx - _wr_idx;
-		if (_wr_idx == _rd_idx) return length() > 0 ? 0 : _capacity - _wr_idx;
-		return 0;
-	}
-
-	void wr_move(uint32 n) { _wr_idx = (_wr_idx + n) % _capacity; _length += n; }
-
-	char* wr_ptr() { return _data + _wr_idx; }
+	uint32 space() { return _capacity - (_wr_idx - _rd_idx); }
 
 	void resize(uint32 n) {
 		_data = (char *)::realloc(_data, n);
@@ -59,7 +58,6 @@ public:
 private:
 	char *_data;
 	uint32 _capacity;
-	uint32 _length;
 	uint32 _wr_idx, _rd_idx;
 };
 

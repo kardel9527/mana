@@ -18,25 +18,41 @@ NetIoHandler::~NetIoHandler() {
 }
 
 int32 NetIoHandler::handle_input() {
+	// recv 2048 bytes one time, and reactor will call it until nothing to recv.
 	char buff[2048] = { 0 };
 	int32 n = ::recv(_fd, buff, sizeof(buff), 0);
-	if (n == 0) return -1;
-	if (n < 0) return (errno != EAGAIN && errno != EWOULDBLOCK) ? -1 : 0;
 	
+	// connection was disconnected by peer.
+	if (n == 0) return -1;
+	// error curred, see if would block
+	if (n < 0) return (errno != EAGAIN && errno != EWOULDBLOCK) ? -1 : 0;
+
+	// TODO: parse the packet here?
+	// write the recved n bytes into the recv buffer.
 	_rcv_lock.lock();
 	_rcv_buff.write(buff, n);
 	_rcv_lock.unlock();
+
 	return 1;
 }
 
 int32 NetIoHandler::handle_output() {
+	// we will try send all data in the buff, because this may be called by send with immediately param.
 	kcommon::AutoLock<kcommon::Mutex> guard(_snd_lock);
 	while (_snd_buff.avail() > 0) {
-		int32 n = ::send(_fd, _snd_buff.rd_ptr(), _snd_buff.avail(), 0);
+		char buff[1024 * 10] = { 0 };
+		int32 len = _snd_buff.peek(buff, sizeof(buff));
+		int32 n = ::send(_fd, buff, len, 0);
+
+		// connection was disconnected by peer.
 		if (n == 0) return -1;
+		// error curred, see if would block
 		if (n < 0) return (errno != EAGAIN && errno != EWOULDBLOCK) ? -1 : 0;
+
+		// ok, send n bytes.
 		_snd_buff.rd_move(n);
 	}
+
 	return 0;
 }
 
