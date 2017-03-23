@@ -45,6 +45,12 @@ private:
 	LOCK &_lock;
 };
 
+#ifdef KMT
+#define LOCK_DEF(NAME) kcommon::Mutex NAME
+#else
+#define LOCK_DEF(NAME) kcommon::DefaultLock NAME
+#endif // KMT
+
 NMS_END // end namespace kcommon
 
 #endif // __LOCK_H_

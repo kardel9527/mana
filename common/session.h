@@ -4,7 +4,7 @@
 #include "macros.h"
 
 NMS_BEGIN(kevent)
-	class NetIoHandler;
+class NetIoHandler;
 NMS_END
 
 class Session {
@@ -22,11 +22,19 @@ public:
 		ST_W2G = 3,
 	};
 
-	void connected();
+	void on_connect(kevent::NetIoHandler *handler);
 
-	void disconnected();
+	void on_disconnect();
+
+	Session::SessionStatus get_status() { return _state; }
+
+	void update();
 
 private:
+	void keep_alive();
+
+private:
+	SessionStatus _state;
 	kevent::NetIoHandler *_handler;
 };
 

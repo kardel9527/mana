@@ -33,13 +33,16 @@ public:
 	bool is_active();
 
 private:
+	int32 send_impl();
+
+private:
 	int32 _fd;
 	bool _active;
 	InetAddr _inet_addr;
 	RingBuffer _snd_buff;
-	kcommon::Mutex _snd_lock;
+	LOCK_DEF(_snd_lock);
 	RingBuffer _rcv_buff;
-	kcommon::Mutex _rcv_lock;
+	LOCK_DEF(_rcv_lock);
 };
 
 NMS_END // end namespace kevent

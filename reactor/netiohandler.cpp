@@ -39,21 +39,7 @@ int32 NetIoHandler::handle_input() {
 int32 NetIoHandler::handle_output() {
 	// we will try send all data in the buff, because this may be called by send with immediately param.
 	kcommon::AutoLock<kcommon::Mutex> guard(_snd_lock);
-	while (_snd_buff.avail() > 0) {
-		char buff[1024 * 10] = { 0 };
-		int32 len = _snd_buff.peek(buff, sizeof(buff));
-		int32 n = ::send(_fd, buff, len, 0);
-
-		// connection was disconnected by peer.
-		if (n == 0) return -1;
-		// error curred, see if would block
-		if (n < 0) return (errno != EAGAIN && errno != EWOULDBLOCK) ? -1 : 0;
-
-		// ok, send n bytes.
-		_snd_buff.rd_move(n);
-	}
-
-	return 0;
+	return send_impl();
 }
 
 int32 NetIoHandler::send(const char *data, uint32 len, bool immediately/* = true*/) {
@@ -64,11 +50,17 @@ int32 NetIoHandler::send(const char *data, uint32 len, bool immediately/* = true
 }
 
 int32 NetIoHandler::disconnect() {
-	// TODO: how to handle the data left in recv buff and snd buff.
-	reactor()->remove_handler(get_handle());
+	//reactor()->remove_handler(get_handle());
+
+	// give up data in the rcv buff.
+	_rcv_buffer.reset();
+	// try send all content in the send buff.
+	while (send_impl() > 0) ;
+
 	::close(_fd);
 	_fd = -1;
 	_active = false;
+
 	return 0;
 }
 
@@ -95,6 +87,24 @@ int32 NetIoHandler::reconnect() {
 
 bool NetIoHandler::is_active() {
 	return _active;
+}
+
+int32 NetIoHandler::send_impl() {
+	// try send 2 kbytes one time.
+	char buff[1024 * 2] = { 0 };
+	int32 len = _snd_buff.peek(buff, sizeof(buff));
+	if (len <= 0) return 0;
+
+	int32 n = ::send(_fd, buff, len, 0);
+	// connection was disconnected by peer.
+	if (n == 0) return -1;
+	// error curred, see if would block
+	if (n < 0) return (errno != EAGAIN && errno != EWOULDBLOCK) ? -1 : 0;
+
+	// ok, send n bytes.
+	_snd_buff.rd_move(n);
+
+	return 1;
 }
 
 NMS_END // end namespace kevent

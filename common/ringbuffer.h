@@ -55,6 +55,8 @@ public:
 		_capacity = n;
 	}
 
+	void reset() { _wr_idx = _rd_idx = 0; }
+
 private:
 	char *_data;
 	uint32 _capacity;
