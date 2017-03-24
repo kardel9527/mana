@@ -7,14 +7,18 @@
 #include "inetaddr.h"
 #include "lock.h"
 
+class ISession;
+
 NMS_BEGIN(kevent)
 
 class NetIoHandler : public IHandler {
 public:
-	NetIoHandler() : _fd(-1), _active(true) {}
+	NetIoHandler() : _fd(-1), _active(true), _session(0) {}
 	~NetIoHandler();
 
 	void redirect(int32 fd, const InetAddr &addr) { _fd = fd; _inet_addr = addr; }
+
+	void session(ISession *session) { _session = session; }
 
 	virtual int32 get_handle() { return _fd; }
 
@@ -39,10 +43,9 @@ private:
 	int32 _fd;
 	bool _active;
 	InetAddr _inet_addr;
-	RingBuffer _snd_buff;
-	LOCK_DEF(_snd_lock);
-	RingBuffer _rcv_buff;
-	LOCK_DEF(_rcv_lock);
+	ISession *_session;
+	RingBuffer<byte> _snd_buff;
+	RingBuffer<byte> _rcv_buff;
 };
 
 NMS_END // end namespace kevent

@@ -29,23 +29,22 @@ int32 NetIoHandler::handle_input() {
 
 	// TODO: parse the packet here?
 	// write the recved n bytes into the recv buffer.
-	_rcv_lock.lock();
+	_rcv_buff.lock();
 	_rcv_buff.write(buff, n);
-	_rcv_lock.unlock();
+	_rcv_buff.unlock();
 
 	return 1;
 }
 
 int32 NetIoHandler::handle_output() {
-	// we will try send all data in the buff, because this may be called by send with immediately param.
-	kcommon::AutoLock<kcommon::Mutex> guard(_snd_lock);
+	AutoLock guard(_snd_buff);
 	return send_impl();
 }
 
 int32 NetIoHandler::send(const char *data, uint32 len, bool immediately/* = true*/) {
-	_snd_lock.lock();
+	_snd_buff.lock();
 	_snd_buff.write(data, len);
-	_snd_lock.unlock();
+	_snd_buff.unlock();
 	return immediately ? handle_output() : 0;
 }
 

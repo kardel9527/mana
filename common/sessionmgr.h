@@ -20,11 +20,19 @@ public:
 	void update();
 
 private:
+	void handle_connect_list();
+
+	void handle_disconnect_list();
+
+private:
+	typedef std::vector<int32> HandlerIdList;
 	typedef std::vector<kevent::NetIoHandler *> HandlerList;
 	typedef std::map<int32, Session *> SessionMap;
 	SessionMap _session;
-	LOCK_DEF(_connected_list_lock)
+	LOCK_DEF(_connected_list_lock);
 	HandlerList _connected_list;
+	LOCK_DEF(_disconnect_list_lock);
+	HandlerIdList _disconnect_list;
 };
 
 #endif // __SESSION_MGR_H_

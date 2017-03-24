@@ -2,12 +2,13 @@
 #define __SESSION_H_
 #include "udt.h"
 #include "macros.h"
+#include "isession.h"
 
 NMS_BEGIN(kevent)
 class NetIoHandler;
 NMS_END
 
-class Session {
+class Session : public ISession {
 public:
 	enum SessionStatus { 
 		SS_NONE = 0, 
@@ -21,6 +22,8 @@ public:
 		ST_GW2G = 2,
 		ST_W2G = 3,
 	};
+
+	virtual void on_recv(const char *data, uint32 len);
 
 	void on_connect(kevent::NetIoHandler *handler);
 
