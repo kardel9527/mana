@@ -4,21 +4,19 @@
 #include <string.h>
 #include <fcntl.h>
 #include <errno.h>
-#include "inetaddr.h"
 #include "ireactor.h"
 #include "netiohandler.h"
+#include "session.h"
+#include "sessionmgr.h"
 #include "acceptor.h"
 
-NMS_BEGIN(kevent)
+NMS_BEGIN(kcommon)
 
 Acceptor::~Acceptor() {
-	if (_sock > 0) {
-		::close(_sock);
-		_sock = -1;
-	}
+	sclose(_sock);
 }
 
-int32 Acceptor::open(const char *addr, uint16 port) {
+int32 Acceptor::open(const kcommon::InetAddr &addr) {
 	_sock = ::socket(AF_INET, SOCK_STREAM, 0);
 	if (_sock == -1) return -1;
 
@@ -27,8 +25,7 @@ int32 Acceptor::open(const char *addr, uint16 port) {
 	if (ret) return ret;
 
 	// bind socket
-	InetAddr inet_addr(addr, port);
-	ret = ::bind(_sock, (sockaddr *)inet_addr.addr(), sizeof(sockaddr));
+	ret = ::bind(_sock, (sockaddr *)addr.addr(), sizeof(sockaddr));
 	if (ret) return ret;
 
 	// listen
@@ -40,7 +37,7 @@ int32 Acceptor::open(const char *addr, uint16 port) {
 }
 
 int32 Acceptor::handle_input() {
-	InetAddr addr;
+	kcommon::InetAddr addr;
 	socklen_t addr_len = sizeof(sockaddr);
 
 	int32 fd = ::accept(_sock, (sockaddr *)addr.addr(), &addr_len);
@@ -50,23 +47,26 @@ int32 Acceptor::handle_input() {
 		// set none block
 		fcntl(fd, F_SETFL, fcntl(fd, F_GETFL) | O_NONBLOCK);
 
-		// get a handler and register into reactor.
-		NetIoHandler *handler = new NetIoHandler();
+		// create a client session
+		Session *s = _session_mgr->create(1);
+		s->mgr(_session_mgr);
+		NetIoHandler *handler = s->io_handler();
 		handler->redirect(fd, addr);
 		handler->reactor(reactor());
 
-		// TODO: when register failed?
-		return reactor()->register_handler(handler, IHandler::HET_Read | IHandler::HET_Write | IHandler::HET_Except);
+		// register
+		if (reactor()->register_handler(handler, IHandler::HET_Read | IHandler::HET_Write | IHandler::HET_Except) != 0) {
+			_session_mgr->destroy(s);
+		} else {
+			_session_mgr->handle_new_connect(s);
+		}
 	}
 }
 
 int32 Acceptor::handle_close() {
-	if (_sock > 0) {
-		::close(_sock);
-		_sock = -1;
-	}
+	sclose(_sock);
 	return 0;
 }
 
-NMS_END // end namespace kevent
+NMS_END // end namespace kcommon
 

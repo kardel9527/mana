@@ -4,7 +4,7 @@
 #include "macros.h"
 
 NMS_BEGIN(kevent)
-class IReactor;
+class Reactor;
 
 class IHandler {
 public:
@@ -14,7 +14,7 @@ public:
 	IHandler() : _reactor(0) {}
 	virtual ~IHandler() {}
 
-	virtual void reactor(IReactor *ireactor) { _reactor = ireactor; }
+	virtual void reactor(Reactor *reactor) { _reactor = reactor; }
 
 	virtual IReactor* reactor() { return _reactor; }
 
@@ -26,7 +26,7 @@ public:
 
 	virtual int32 handle_output() { return 0; }
 
-	virtual int32 handle_error() { return 0; }
+	virtual int32 handle_error() { return -1; }
 
 	virtual int32 handle_close() { return 0; }
 
@@ -35,7 +35,7 @@ public:
 	virtual int32 handle_sig() { return 0; }
 
 private:
-	IReactor *_reactor;
+	Reactor *_reactor;
 };
 
 NMS_END // end namespace kevent

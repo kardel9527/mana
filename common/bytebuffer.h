@@ -47,6 +47,8 @@ public:
 		_capacity = len;
 	}
 
+	char* wr_ptr() { return _data + _wr_idx; }
+
 private:
 	char *_data;
 	uint32 _capacity;
@@ -94,7 +96,6 @@ public:
 	LEFT_SHIFT_OPERATOR(double)
 	LEFT_SHIFT_OPERATOR(std::string)
 };
-
 
 NMS_END // end namespace kcommon
 

@@ -8,13 +8,16 @@ NMS_BEGIN(kevent)
 
 class Reactor {
 public:
+	Reactor() {}
 	Reactor(IReactor *reactor, bool del) : _del(del), _impl(reactor) {}
 
 	~Reactor() { if (_del) safe_delete(_impl); }
 
-	int32 begin_handle_events(timet interval = 50) { _impl->deactive(true); while (_impl->is_active()) _impl->handle_events(interval); return 0; }
+	void open(IReactor *reactor, bool del) { _impl = reactor; _del = del; }
+
+	int32 begin_event_loop(timet interval = 50) { _impl->deactive(true); while (_impl->is_active()) _impl->handle_events(interval); return 0; }
 	
-	void end_handle_events(bool active = false) { _impl->deactive(active); }
+	void end_event_loop(bool active = false) { _impl->deactive(active); }
 
 	bool is_active() { return _impl->is_active(); }
 

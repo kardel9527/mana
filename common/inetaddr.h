@@ -5,6 +5,8 @@
 #include <string.h>
 #include "udt.h"
 
+NMS_BEGIN(kcommon)
+
 class InetAddr {
 public:
 	InetAddr() { reset(); }
@@ -32,6 +34,8 @@ public:
 private:
 	sockaddr_in _addr;
 };
+
+NMS_END // end namespace kcommon
 
 #endif // __INET_ADDR_H_
 

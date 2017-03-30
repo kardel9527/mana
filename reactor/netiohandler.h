@@ -7,18 +7,18 @@
 #include "inetaddr.h"
 #include "lock.h"
 
-class ISession;
+class Session;
 
-NMS_BEGIN(kevent)
+NMS_BEGIN(kcommon)
 
 class NetIoHandler : public IHandler {
 public:
 	NetIoHandler() : _fd(-1), _active(true), _session(0) {}
 	~NetIoHandler();
 
-	void redirect(int32 fd, const InetAddr &addr) { _fd = fd; _inet_addr = addr; }
+	void redirect(int32 fd, const kcommon::InetAddr &addr) { _fd = fd; _inet_addr = addr; }
 
-	void session(ISession *session) { _session = session; }
+	void session(Session *session) { _session = session; }
 
 	virtual int32 get_handle() { return _fd; }
 
@@ -27,6 +27,8 @@ public:
 	virtual int32 handle_input();
 
 	virtual int32 handle_output();
+
+	virtual int32 handle_close();
 
 	int32 send(const char *data, uint32 len, bool immediately = true);
 
@@ -42,13 +44,13 @@ private:
 private:
 	int32 _fd;
 	bool _active;
-	InetAddr _inet_addr;
-	ISession *_session;
+	Session *_session;
+	kcommon::InetAddr _inet_addr;
 	RingBuffer<byte> _snd_buff;
-	RingBuffer<byte> _rcv_buff;
+	RingBuffer<byte, kcommon::DefaultLock> _rcv_buff;
 };
 
-NMS_END // end namespace kevent
+NMS_END // end namespace kcommon
 
 #endif // __NET_IO_HANDLER_H_
 

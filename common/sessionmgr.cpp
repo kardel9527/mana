@@ -2,16 +2,14 @@
 #include "session.h"
 #include "sessionmgr.h"
 
-void SessionMgr::handle_new_connect(kevent::NetIoHandler *handler) {
-	AutoLock guard(_connected_list_lock);
-	_connected_list.push_back(handler);
+void SessionMgr::handle_new_connect(Session *s) {
+	AutoLock guard(_connected);
+	_connected.write(s);
 }
 
-void SessionMgr::handle_disconnect(kevent::NetIoHandler *handler) {
-	int32 hid = handler->get_handle();
-	delete handler;
-	AutoLock guard(_disconnect_list_lock);
-	_disconnect_list.push_back(hid);
+void SessionMgr::handle_disconnect(Session *s) {
+	AutoLock guard(_disconnected);
+	_disconnected.write(s);
 }
 
 void SessionMgr::update()
@@ -20,42 +18,50 @@ void SessionMgr::update()
 
 	handle_disconnect_list();
 
-	for (SessionMap::iterator it = _session.begin(); it != _session.end(); ++it) {
-		it->second->update();
-	}
+	update_session();
 }
 
+Session* SessionMgr::create(int32 type) {
+	return New Session();
+}
+
+void SessionMgr::destroy(Session *s) {
+	delete s;
+}
+
+// TODO: when handle connect, the io handler was already closed
 void SessionMgr::handle_connect_list() {
-	HandlerList tmp;
-	_connected_list_lock.lock();
-	tmp_list = _connected_list;
-	_connected_list_lock.unlock();
+	AutoLock guard(_connected);
+	uint32 size = _connected.avail();
+	for (uint32 i = 0; i < size; ++i) {
+		Session *session = 0;
+		_connected.read(session);
 
-	for (HandlerList::iterator it = tmp.begin(); it != tmp.end(); +++it) {
-		kevent::NetIoHandler *handler = *it;
-		Session *session = new Session();
-		session->on_connect(handler);
+		session->handle_connect();
 
-		_session[handler->get_handle()] = session;
+		_session[session->id()] = session;
 	}
 }
 
 void SessionMgr::handle_disconnect_list() {
-	HandlerIdList tmp;
-	_disconnect_list_lock.lock();
-	tmp = _disconnect_list;
-	_disconnect_list.clear();
-	_disconnect_list_lock.unlock();
+	AutoLock guard(_disconnected);
+	uint32 size = _disconnected.avail();
+	for (uint32 i = 0; i < size; ++i) {
+		Session *session = 0;
+		_connected.read(session);
 
-	for (HandlerIdList::iterator it = tmp.begin(); it != tmp.end(); ++it) {
-		SessionMap::iterator its = _session.find(*it);
-		if (it == _session.end()) continue;
+		SessionMap::iterator it = _session.find(session->id());
+		if (it != _session.end()) _session.erase(it);
 
-		Session *s = its->second;
-		s->on_disconnect();
-		delete s;
+		session->handle_disconnect();
 
-		_session.erase(its);
+		destroy(session);
 	}
+}
+
+void SessionMgr::update_session() {
+	for (SessionMap::iterator it = _session.begin(); it != _session.end(); ++it) {
+		it->second->update();
+	}
 }
 

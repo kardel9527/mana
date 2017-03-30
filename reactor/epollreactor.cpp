@@ -12,8 +12,15 @@ NMS_BEGIN(kevent)
 EpollReactor::HandlerRepository::~HandlerRepository() {
 	_size = 0;
 	_capacity = 0;
+
+	// notice the handler
+	for (uint32 i = 0; i < _capacity; ++i) {
+		HandlerEntry *entry = find(i);
+		if (entry) entry->_handler->handle_close();
+	}
 	safe_delete(_tuple);
 }
+
 int32 EpollReactor::HandlerRepository::open(uint32 max_handler_sz) {
 	// TODO: set system handle limit
 	// already opened.
@@ -225,3 +232,4 @@ int32 EpollReactor::epoll_mask(int32 mask) {
 }
 
 NMS_END // end namespace kevent
+

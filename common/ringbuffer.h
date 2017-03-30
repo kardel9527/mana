@@ -6,6 +6,8 @@
 #include "lock.h"
 #include "udt.h"
 
+NMS_BEGIN(kcommon)
+
 template<typename T, typename Lock = LockType>
 class RingBuffer : public Lock {
 public:
@@ -67,6 +69,8 @@ private:
 	uint32 _capacity;
 	uint32 _wr_idx, _rd_idx;
 };
+
+NMS_END // end namespace kcommon
 
 #endif // __RING_BUFFER_H_
 

@@ -2,13 +2,15 @@
 #define __SESSION_H_
 #include "udt.h"
 #include "macros.h"
-#include "isession.h"
+#include "bytebuffer.h"
+#include "ringbuffer.h"
 
-NMS_BEGIN(kevent)
+NMS_BEGIN(kcommon)
+
+class SessionMgr;
 class NetIoHandler;
-NMS_END
 
-class Session : public ISession {
+class Session {
 public:
 	enum SessionStatus { 
 		SS_NONE = 0, 
@@ -23,23 +25,53 @@ public:
 		ST_W2G = 3,
 	};
 
-	virtual void on_recv(const char *data, uint32 len);
+public:
+	Session();
+	~Session();
 
-	void on_connect(kevent::NetIoHandler *handler);
+	kcommon::NetIoHandler* io_handler() { return _io_handler; }
 
-	void on_disconnect();
+	void on_recv(ReadBuffer *buff);
 
-	Session::SessionStatus get_status() { return _state; }
+	int32 id();
 
 	void update();
 
+	int32 send(const char *data, int32 len, bool immediately = false);
+
+	void kickoff();
+
+	virtual void handle_packet(ReadBuffer *packet) {}
+
+	virtual void handle_connect() {}
+
+	virtual void handle_disconnect() {}
+
+	Session::SessionStatus status() { return _state; }
+
+	void type(int32 type) { _type = type; }
+
+	void mgr(kcommon::SessionMgr *mgr) { _mgr = mgr; }
+
+	kcommon::SessionMgr* mgr() { return _mgr; }
+
 private:
+	Session(const Session &other) {}
+	Session& operator = (const Session &rh) { return *this; }
+
+	void process_packet();
+
 	void keep_alive();
 
 private:
+	SessionType _type;
 	SessionStatus _state;
-	kevent::NetIoHandler *_handler;
+	kcommon::NetIoHandler *_io_handler;
+	kcommon::SessionMgr *_mgr;
+	kcommon::RingBuffer<ReadBuffer *> _msg_queue;
 };
+
+NMS_END // end namespace kcommon
 
 #endif // __SESSION_H_
 
