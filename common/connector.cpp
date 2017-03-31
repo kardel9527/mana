@@ -10,6 +10,7 @@
 #include "stringutil.h"
 #include "netiohandler.h"
 #include "session.h"
+#include "sessionmgr.h"
 #include "connector.h"
 
 NMS_BEGIN(kcommon)

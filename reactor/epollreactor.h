@@ -68,6 +68,8 @@ private:
 private:
 	int32 epoll_mask(int32 mask);
 
+	int32 resume_handler_impl(int32 hid, int32 op);
+
 private:
 	int32 _epoll_fd;
 	bool _active;

@@ -132,7 +132,7 @@ int32 EpollReactor::handle_events(timet interval/* = 0ull*/) {
 		if (status < 0) {
 			remove_handler(handler->get_handle());
 		} else {
-			resume_handler(handler->get_handle());
+			resume_handler_impl(entry, EPOLL_CTL_ADD);
 		}
 	} else {
 		// no io event happend, dispach a timer event.
@@ -198,13 +198,7 @@ int32 EpollReactor::resume_handler(int32 hid) {
 	if (!entry) return -1;
 	if (entry->_suspend == false) return -1;
 
-	epoll_event event;
-	event.data.fd = entry->_handler->get_handle();
-	event.events = entry->_mask | EPOLLERR | EPOLLET | EPOLLONESHOT;
-	epoll_ctl(_epoll_fd, EPOLL_CTL_ADD, event.data.fd, &event);
-
-	entry->_suspend = false;
-	return 0;
+	return resume_handler_impl(entry, EPOLL_CTL_ADD);
 }
 
 int32 EpollReactor::register_timer(IHandler *handler, timet start_time, timet interval) {
@@ -226,6 +220,16 @@ int32 EpollReactor::epoll_mask(int32 mask) {
 	ret |= EPOLLERR;
 
 	return ret;
+}
+
+int32 EpollReactor::resume_handler_impl(HandlerEntry *entry, int32 op) {
+	epoll_event event;
+	event.data.fd = entry->_handler->get_handle();
+	event.events = entry->_mask | EPOLLERR | EPOLLET | EPOLLONESHOT;
+	epoll_ctl(_epoll_fd, op, event.data.fd, &event);
+	entry->_suspend = false;
+
+	return 0;
 }
 
 NMS_END // end namespace kevent
