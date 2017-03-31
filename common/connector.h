@@ -4,7 +4,7 @@
 #include "udt.h"
 #include "inetaddr.h"
 #include "ihandler.h"
-#include "ringbuffer.h"
+#include "fastqueue.h"
 
 NMS_BEGIN(kcommon)
 
@@ -22,7 +22,7 @@ public:
 private:
 	int32 _timer_id;
 	uint32 _interval;
-	kcommon::RingBuffer<Session *> _conn_list;
+	kcommon::FastQueue<Session *> _conn_list;
 };
 
 NMS_END // end namespace kcommon

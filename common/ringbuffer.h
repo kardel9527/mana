@@ -61,6 +61,7 @@ public:
 	uint32 space() const { return _capacity - (_wr_idx - _rd_idx); }
 
 	void resize(uint32 n) {
+		n = roundup_pow_of_two(n);
 		_data = (T *)::realloc(_data, bytes(n));
 		_capacity = n;
 	}
