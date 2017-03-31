@@ -132,7 +132,7 @@ int32 EpollReactor::handle_events(timet interval/* = 0ull*/) {
 		if (status < 0) {
 			remove_handler(handler->get_handle());
 		} else {
-			resume_handler_impl(entry, EPOLL_CTL_ADD);
+			resume_handler_impl(entry, EPOLL_CTL_MOD);
 		}
 	} else {
 		// no io event happend, dispach a timer event.
