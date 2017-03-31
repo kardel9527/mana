@@ -2,7 +2,9 @@
 #include "session.h"
 
 NMS_BEGIN(kcommon)
-Session::Session() : _type(ST_NONE), _state(SS_NONE), _io_handler(new kcommon::NetIoHandler()), _mgr(0) {}
+Session::Session() : _type(ST_NONE), _state(SS_NONE), _io_handler(new kcommon::NetIoHandler()), _mgr(0) {
+	_io_handler->session(this);
+}
 
 Session::~Session() {
 	sdelete(_io_handler);
@@ -11,7 +13,7 @@ Session::~Session() {
 
 void Session::on_recv(ReadBuffer *buff) {
 	AutoLock<LockType> guard(_msg_queue);
-	_msg_queue.write(buff);
+	_msg_queue.push(buff);
 }
 
 int32 Session::id() {
@@ -32,7 +34,7 @@ int32 Session::send(const char *data, int32 len, bool immediately/* = false*/) {
 	return _io_handler->send(data, len, immediately);
 }
 
-void Session::kickoff() {
+void Session::kickoff() {m
 	if (!_io_handler->is_active()) return ;
 
 	_io_handler->disconnect();
@@ -44,11 +46,8 @@ void Session::keep_alive() {
 
 void Session::process_packet() {
 	AutoLock<LockType> guard(_msg_queue);
-	uint32 size = _msg_queue.avail();
-	for (uint32 i = 0; i < size; ++i) {
-		kcommon::ReadBuffer *buff;
-		_msg_queue.read(buff);
-
+	while (!_msg_queue.empty()) {
+		kcommon::ReadBuffer *buff = _msg_queue.pop();
 		handle_packet(buff);
 		delete buff;
 	}

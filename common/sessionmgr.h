@@ -4,7 +4,7 @@
 #include "macros.h"
 #include "udt.h"
 #include "lock.h"
-#include "ringbuffer.h"
+#include "FastQueue.h"
 
 NMS_BEGIN(kcommon)
 
@@ -40,8 +40,8 @@ private:
 	typedef std::map<int32, Session *> SessionMap;
 	SessionMap _session;
 
-	kcommon::RingBuffer<Session *> _disconnected;
-	kcommon::RingBuffer<Session *> _connected;
+	kcommon::FastQueue<Session *> _disconnected;
+	kcommon::FastQueue<Session *> _connected;
 };
 
 NMS_END // end namespace kcommon

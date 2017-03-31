@@ -3,7 +3,7 @@
 #include "udt.h"
 #include "macros.h"
 #include "bytebuffer.h"
-#include "ringbuffer.h"
+#include "fastqueue.h"
 
 NMS_BEGIN(kcommon)
 
@@ -68,7 +68,7 @@ private:
 	SessionStatus _state;
 	kcommon::NetIoHandler *_io_handler;
 	kcommon::SessionMgr *_mgr;
-	kcommon::RingBuffer<ReadBuffer *> _msg_queue;
+	kcommon::FastQueue<ReadBuffer *> _msg_queue;
 };
 
 NMS_END // end namespace kcommon
