@@ -215,7 +215,7 @@ int32 EpollReactor::epoll_mask(int32 mask) {
 	if (mask & IHandler::HET_Read)
 		ret |= EPOLLIN;
 	if (mask & IHandler::HET_Write)
-		ret |= EPOLLIN;
+		ret |= EPOLLOUT;
 
 	ret |= EPOLLERR;
 

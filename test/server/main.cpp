@@ -12,7 +12,7 @@ int32 main(int32 argc, char *argv[]) {
 	int32 ret = svc.open(addr, 1024, new SessionMgrTest());
 	ret = svc.start();
 
-	while (true) { sleep(20); svc.update(); }
+	while (true) { usleep(10000); svc.update(); }
 
 	return 0;
 }

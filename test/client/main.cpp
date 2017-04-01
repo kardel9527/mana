@@ -14,7 +14,7 @@ int32 main(int32 argc, char *argv[]) {
 
 	svc.connect(kcommon::InetAddr("127.0.0.1", 7788), 1);
 
-	while (true) { sleep(30); svc.update();}
+	while (true) { usleep(10000); svc.update();}
 
 	return 0;
 }
