@@ -16,7 +16,23 @@ TestC2SSession::handle_packet(ReadBuffer * packet) {
 	printf("begin send %d packet.\n", num);
 	for (int32 i = 0; i < num; ++i) {
 		char *s = "hello";
-
+		uint32 size = ::strlen(s) + sizeof(size) + 1;
+		send((const char *)&size, sizeof(size), false);
+		send(s, strlen(s), false);
+		send("\0", 1, true);
 	}
+}
+
+kcommon::Session* SessionMgrTest::create(int32 type) {
+	switch (type) {
+	case kcommon:Session::ST_C2S:
+		return new TestC2SSession();
+	default:
+		return SessionMgr::create(type);
+	}
+}
+
+void SessionMgrTest::destroy(kcommon::Session *s) {
+	delete s;
 }
 
