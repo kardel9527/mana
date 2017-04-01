@@ -62,10 +62,10 @@ int32 NetIoHandler::handle_close() {
 		::shutdown(_fd, SHUT_RDWR);
 	}
 
+	_session->mgr()->handle_disconnect(_fd);
+
 	_active = false;
 	sclose(_fd);
-
-	_session->mgr()->handle_disconnect(_session);
 
 	return 0;
 }

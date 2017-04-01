@@ -17,7 +17,7 @@ public:
 
 	void handle_new_connect(Session *s);
 
-	void handle_disconnect(Session *s);
+	void handle_disconnect(int32 hid);
 
 	void update();
 
@@ -40,7 +40,7 @@ private:
 	typedef std::map<int32, Session *> SessionMap;
 	SessionMap _session;
 
-	kcommon::FastQueue<Session *> _disconnected;
+	kcommon::FastQueue<int32> _disconnected;
 	kcommon::FastQueue<Session *> _connected;
 };
 

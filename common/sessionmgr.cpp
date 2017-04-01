@@ -13,9 +13,9 @@ void SessionMgr::handle_new_connect(Session *s) {
 	_connected.push(s);
 }
 
-void SessionMgr::handle_disconnect(Session *s) {
+void SessionMgr::handle_disconnect(int32 hid) {
 	AutoLock<LockType> guard(_disconnected);
-	_disconnected.push(s);
+	_disconnected.push(hid);
 }
 
 void SessionMgr::update()
@@ -49,14 +49,19 @@ void SessionMgr::handle_connect_list() {
 void SessionMgr::handle_disconnect_list() {
 	AutoLock<LockType> guard(_disconnected);
 	while (!_disconnected.empty()) {
-		Session *session = _disconnected.pop();
+		int32 hid = _disconnected.pop();
 
-		SessionMap::iterator it = _session.find(session->id());
-		if (it != _session.end()) _session.erase(it);
+		SessionMap::iterator it = _session.find(hid);
+		if (it != _session.end()) {
+			Session *session = it->second;
+			_session.erase(it);
 
-		session->handle_disconnect();
+			session->handle_disconnect();
 
-		destroy(session);
+			destroy(session);
+		} else {
+			// TODO: error ocurred.
+		}
 	}
 }
 
