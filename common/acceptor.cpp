@@ -55,7 +55,7 @@ int32 Acceptor::handle_input() {
 		handler->reactor(reactor());
 
 		// register
-		if (reactor()->register_handler(handler, IHandler::HET_Read | IHandler::HET_Write | IHandler::HET_Except) != 0) {
+		if (reactor()->register_handler(handler, IHandler::HET_Read /*| IHandler::HET_Write */| IHandler::HET_Except) != 0) {
 			_session_mgr->destroy(s);
 		} else {
 			_session_mgr->handle_new_connect(s);

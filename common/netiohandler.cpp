@@ -59,38 +59,30 @@ int32 NetIoHandler::handle_output() {
 }
 
 int32 NetIoHandler::handle_close() {
-	if (is_active()) {
-		while (send_impl() > 0) ;
-		::shutdown(_fd, SHUT_RDWR);
-	}
+	_active = false;
+	// send left data in the buff.
+	while (send_impl() > 0) ;
 
+	// notice session manager.
 	_session->mgr()->handle_disconnect(_fd);
 
-	_active = false;
 	sclose(_fd);
 
 	return 0;
 }
 
 int32 NetIoHandler::send(const char *data, uint32 len, bool immediately/* = true*/) {
-	if (!is_active()) return 0;
-
 	_snd_buff.lock();
 	_snd_buff.write(data, len);
+	// send immediately
+	while (send_impl() > 0) ;
 	_snd_buff.unlock();
-	return immediately ? handle_output() : 0;
+	//return immediately ? handle_output() : 0;
 }
 
 int32 NetIoHandler::disconnect() {
 	_active = false;
-
-	// send all content in the send buff.
-	_snd_buff.lock();
-	while (send_impl() > 0) ;
-	_snd_buff.unlock();
-
 	::shutdown(_fd, SHUT_RDWR);
-
 	return 0;
 }
 
@@ -109,7 +101,7 @@ int32 NetIoHandler::reconnect() {
 	int32 ret = ::connect(_fd, (sockaddr *)_inet_addr.addr(), addr_len);
 	if (ret == 0) {
 		_active = true;
-		int32 ret = reactor()->register_handler(this, IHandler::HET_Read | IHandler::HET_Write | IHandler::HET_Except);
+		int32 ret = reactor()->register_handler(this, IHandler::HET_Read /*| IHandler::HET_Write*/ | IHandler::HET_Except);
 		return ret == 0 ? 1 : -1;
 	} else if (ret == -1) {
 		return errno == EINPROGRESS ? 0 : -1;

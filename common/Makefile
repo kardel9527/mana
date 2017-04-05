@@ -21,7 +21,7 @@ $(shell mkdir -p $(OBJPATH))
 AUTHOR = $(shell whoami)
 VERSION = 1 #$(shell svn info | grep -v "修改的版本" | grep -v "库" | grep "版本" | grep -oP "\d+")
 
-MARCO	:= -DK_MULTI_THREAD_ -DDAEMON -DAUTHOR=\"$(AUTHOR)\" -DSVNVERSION=$(VERSION) -DSVNLATEST=$(LATEST)
+MARCO	:= -DKMT -DDAEMON -DAUTHOR=\"$(AUTHOR)\" -DSVNVERSION=$(VERSION) -DSVNLATEST=$(LATEST)
 # 设置源代码所在目录，指定目录下所有子目录中的文件都将被加入项目中，若对某些目录或文件忽略需要特别指定;
 # 指定目录时可使用相对路径（相对Makefile的路径），多目录可以使用空格隔开
 # TODO 注意：源文件和目录名不能含有' '、'$'、'#'、'@'、'?'、'%'、'~'等特殊字符

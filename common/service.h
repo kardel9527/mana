@@ -7,6 +7,7 @@
 #include "reactor.h"
 #include "singleton.h"
 
+// : TODO: add a send thread
 class Service : public kcommon::Singlegon<Service> {
 public:
 	Service();
