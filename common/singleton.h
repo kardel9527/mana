@@ -5,18 +5,18 @@
 NMS_BEGIN(kcommon)
 
 template<typename T>
-class Singlegon {
+class Singleton {
 	static void create() { if (!_instance) _instance = new T(); }
 
 	static void destroy() { sdelete(_instance); }
 
-	T* instance() { return _instance; }
+	static T* instance() { return _instance; }
 
 private:
 	static T *_instance;
 };
 
-template<typename T> T *Singlegon<T>::_instance = 0;
+template<typename T> T *Singleton<T>::_instance = 0;
 
 NMS_END // end namespace kcommon
 

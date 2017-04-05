@@ -8,7 +8,7 @@
 #include "singleton.h"
 
 // : TODO: add a send thread
-class Service : public kcommon::Singlegon<Service> {
+class Service : public kcommon::Singleton<Service> {
 public:
 	Service();
 	~Service();
