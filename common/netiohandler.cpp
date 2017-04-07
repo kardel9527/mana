@@ -29,25 +29,26 @@ int32 NetIoHandler::handle_input() {
 	// error curred, see if would block
 	if (n < 0) return (errno != EAGAIN && errno != EWOULDBLOCK) ? -1 : 0;
 
-	// TODO: parse the packet here?
 	// write the recved n bytes into the recv buffer.
 	_rcv_buff.write(buff, n);
 
-	// if recv a full packet, put it into the session.
-	uint32 packet_size = 0;
-	_rcv_buff.peek((char *)&packet_size, sizeof(packet_size));
-	while (_rcv_buff.avail() >= (packet_size + sizeof(packet_size))) {
-		// TODO: avoid alloc and copy?
+	// try recv full packet.
+	while (true) {
+		uint32 len = 0;
+		uint32 size = _rcv_buff.peek((char *)&len, sizeof(len));
+		// not a full head size
+		if (size != sizeof(len)) break;
+
+		// not a full packet
+		if (_rcv_buff.avail() < len + size) break;
+
+		// a full packet;
+		_rcv_buff.rd_move(sizeof(packet_size));
 		kcommon::ReadBuffer *buffer = new kcommon::ReadBuffer();
 		buffer->resize(packet_size);
-		_rcv_buff.rd_move(sizeof(packet_size));
-
 		_rcv_buff.read(buffer->wr_ptr(), packet_size);
 		buffer->wr_move(packet_size);
 		_session->on_recv(buffer);
-
-		packet_size = 0;
-		_rcv_buff.peek((char *)&packet_size, sizeof(packet_size));
 	}
 
 	return 1;
@@ -75,8 +76,10 @@ int32 NetIoHandler::send(const char *data, uint32 len, bool immediately/* = true
 	_snd_buff.lock();
 	_snd_buff.write(data, len);
 	// send immediately
+	// TODO: when send failed, (peer closed?)
 	while (send_impl() > 0) ;
 	_snd_buff.unlock();
+	return 0;
 	//return immediately ? handle_output() : 0;
 }
 

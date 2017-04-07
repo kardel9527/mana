@@ -62,7 +62,13 @@ public:
 
 	void resize(uint32 n) {
 		n = roundup_pow_of_two(n);
-		_data = (T *)::realloc(_data, bytes(n));
+		T *ptr = (T *)::malloc(bytes(n));
+		uint32 size = avail();
+		peek(ptr, size);
+		sfree(_data);
+		_data = ptr;
+		_rd_idx = 0;
+		_wr_idx = size;
 		_capacity = n;
 	}
 
