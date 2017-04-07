@@ -43,11 +43,11 @@ int32 NetIoHandler::handle_input() {
 		if (_rcv_buff.avail() < len + size) break;
 
 		// a full packet;
-		_rcv_buff.rd_move(sizeof(packet_size));
+		_rcv_buff.rd_move(sizeof(len));
 		kcommon::ReadBuffer *buffer = new kcommon::ReadBuffer();
-		buffer->resize(packet_size);
-		_rcv_buff.read(buffer->wr_ptr(), packet_size);
-		buffer->wr_move(packet_size);
+		buffer->resize(len);
+		_rcv_buff.read(buffer->wr_ptr(), len);
+		buffer->wr_move(len);
 		_session->on_recv(buffer);
 	}
 
