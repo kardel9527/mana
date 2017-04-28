@@ -2,9 +2,13 @@
 #define __LOGGER_H_
 #include "macros.h"
 #include "udt.h"
+#include "lock.h"
+#include "singleton.h"
 #include "ringbuffer.h"
 
-NMS_BEGIN(kcommon)
+struct FILE;
+
+NMS_BEGIN(klog)
 
 enum LogLevel {
 	LL_FATAL = 0,
@@ -12,26 +16,49 @@ enum LogLevel {
 	LL_WARNING = 2,
 	LL_NOTICE = 3,
 	LL_INFO = 4,
-	LL_DEBUG = 5
+	LL_DEBUG = 5,
+	LL_MAX
 };
 
-class Logger {
+class Logger : public kcommon::Singleton<Logger> {
 public:
-	Logger() {}
-	~Logger() {}
+	Logger() : _fp(0), _active(false), _last_create_time(0), _limit(LL_MAX), _thread(0) {}
+	~Logger();
 
-	void log(const char *module, LogLevel lv, const char *fmt, ...);
+	int32 open(LogLevel limit);
+
+	void close();
+
+	void log(const char *module, const char *file, const char *func, uint32 line, LogLevel lv, const char *fmt, ...);
 
 private:
 	Logger(const Logger &other) {}
 	Logger& operator = (const Logger &rh) { return *this; }
 
 private:
+	void log_file_checking();
+
+	void flush();
+
+	static void* io_routine(void *arg);
+
+private:
 	FILE *_fp;
+	bool _active;
+	LogLevel _limit;
+	uint64 _last_create_time;
+	uint32_t _thread;
 	kcommon::RingBuffer<char> _log_buffer;
 };
 
-NMS_END // end namespace kcommon
+NMS_END // end namespace klog
+
+#define LOG_FATAL(MODULE, FMT, ...) klog::Logger::instance()->log(MODULE, __FILE__, __FUNCTION__, __LINE__, klog::LL_FATAL, FMT, ##__VA_ARGS__)
+#define LOG_ERROR(MODULE, FMT, ...) klog::Logger::instance()->log(MODULE, __FILE__, __FUNCTION__, __LINE__, klog::LL_ERROR, FMT, ##__VA_ARGS__)
+#define LOG_WARNING(MODULE, FMT, ...) klog::Logger::instance()->log(MODULE, __FILE__, __FUNCTION__, __LINE__, klog::LL_WARNING, FMT, ##__VA_ARGS__)
+#define LOG_NOTICE(MODULE, FMT, ...) klog::Logger::instance()->log(MODULE, __FILE__, __FUNCTION__, __LINE__, klog::LL_NOTICE, FMT, ##__VA_ARGS__)
+#define LOG_INFO(MODULE, FMT, ...) klog::Logger::instance()->log(MODULE, __FILE__, __FUNCTION__, __LINE__, klog::LL_INFO, FMT, ##__VA_ARGS__)
+#define LOG_DEBUG(MODULE, FMT, ...) klog::Logger::instance()->log(MODULE, __FILE__, __FUNCTION__, __LINE__, klog::LL_DEBUG, FMT, ##__VA_ARGS__)
 
 #endif // __LOGGER_H_
 

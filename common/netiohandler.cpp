@@ -33,6 +33,7 @@ int32 NetIoHandler::handle_input() {
 	_rcv_buff.write(buff, n);
 
 	// try recv full packet.
+	// TODO: try avoid the data copy.
 	while (true) {
 		uint32 len = 0;
 		uint32 size = _rcv_buff.peek((char *)&len, sizeof(len));
