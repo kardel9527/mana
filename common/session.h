@@ -51,6 +51,8 @@ public:
 
 	void type(int32 session_type) { _type = (Session::SessionType)session_type; }
 
+	Session::SessionType type() { return _type; }
+
 	void mgr(kcommon::SessionMgr *mgr) { _mgr = mgr; }
 
 	kcommon::SessionMgr* mgr() { return _mgr; }

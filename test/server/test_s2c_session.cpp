@@ -1,9 +1,10 @@
 #include <string>
 #include <stdio.h>
+#include "logger.h"
 #include "test_s2c_session.h"
 
 void TestS2CSession::handle_connect() {
-	printf("fd [%d] connected.\n", id());
+	LOG_DEBUG("session", "session [id:%d, type:%d] connected.", id(), type());
 	int32 size = 4;
 	send((const char *)&size, sizeof(size), false);
 	size = 128;
@@ -11,7 +12,7 @@ void TestS2CSession::handle_connect() {
 }
 
 void TestS2CSession::handle_disconnect() {
-	printf("fd [%d] disconnected.\n", id());
+	LOG_DEBUG("session", "session [id:%d, type:%d] disconnected.", id(), type());
 }
 
 void TestS2CSession::handle_packet(kcommon::ReadBuffer * packet) {
@@ -19,7 +20,7 @@ void TestS2CSession::handle_packet(kcommon::ReadBuffer * packet) {
 	std::string text;
 	s_num ++;
 	*packet >> text;
-	printf("handle packet %d, content[%s]\n", s_num, text.c_str());
+	LOG_DEBUG("session", "[id:%d, type:%d] received packet [order:%d, text:%s].", s_num, text.c_str());
 }
 
 kcommon::Session* SessionMgrTest::create(int32 type) {

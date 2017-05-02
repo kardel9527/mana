@@ -72,6 +72,13 @@ public:
 		_capacity = n;
 	}
 
+	void swap(RingBuffer &other) {
+		swap(other._capacity, _capacity);
+		slow_swap(other._data, _data);
+		slow_swap(other._wr_idx, _wr_idx);
+		slow_swap(other._rd_idx, _rd_idx);
+	}
+
 private:
 	uint32 bytes(uint32 len) const { return len * sizeof(T); }
 
