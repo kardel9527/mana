@@ -6,7 +6,7 @@
 #include "lock.h"
 #include "fastqueue.h"
 
-NMS_BEGIN(kcommon)
+NMS_BEGIN(kcore)
 
 class Session;
 
@@ -44,7 +44,7 @@ private:
 	kcommon::FastQueue<Session *> _connected;
 };
 
-NMS_END // end namespace kcommon
+NMS_END // end namespace kcore
 
 #endif // __SESSION_MGR_H_
 

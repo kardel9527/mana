@@ -1,5 +1,6 @@
 #ifndef __SINGLETON_H_
 #define __SINGLETON_H_
+#include <assert.h>
 #include "macros.h"
 
 NMS_BEGIN(kcommon)
@@ -7,7 +8,10 @@ NMS_BEGIN(kcommon)
 template<typename T>
 class Singleton {
 public:
-	static void create() { if (!_instance) _instance = new T(); }
+	Singleton() : _instance(0) { assert(!_instance); _instance = static_cast<T *>(this); }
+	~Singleton() { sdelete(_instance); }
+
+	static void create() { new T(); }
 
 	static void destroy() { sdelete(_instance); }
 

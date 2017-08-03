@@ -33,6 +33,8 @@ public:
 	// register a sig handler
 	virtual int32 register_handler(int32 sig_num, IHandler *handler) { return -1; }
 
+	virtual int32 append_handler_mask_once(int32 hid, int32 mask) { return -1; }
+
 	virtual int32 remove_handler(int32 hid) { return -1; }
 
 	virtual int32 suspend_handler(int32 hid) { return -1; }

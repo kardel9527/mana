@@ -2,13 +2,13 @@
 #define __SESSION_H_
 #include "udt.h"
 #include "macros.h"
-#include "bytebuffer.h"
 #include "fastqueue.h"
 
-NMS_BEGIN(kcommon)
+NMS_BEGIN(kcore)
 
 class SessionMgr;
 class NetIoHandler;
+struct PacketHeader;
 
 class Session {
 public:
@@ -29,11 +29,13 @@ public:
 	Session();
 	~Session();
 
-	kcommon::NetIoHandler* io_handler() { return _io_handler; }
+	NetIoHandler* io_handler() { return _io_handler; }
 
-	void on_recv(ReadBuffer *buff);
+	void on_recv(const char *data);
 
-	int32 id();
+	int32 id() { return _id; }
+
+	void id(int32 cid) { _id = cid; }
 
 	void update();
 
@@ -41,7 +43,7 @@ public:
 
 	void kickoff();
 
-	virtual void handle_packet(ReadBuffer *packet) {}
+	virtual void handle_packet(const char *data) {}
 
 	virtual void handle_connect() {}
 
@@ -53,9 +55,9 @@ public:
 
 	Session::SessionType type() { return _type; }
 
-	void mgr(kcommon::SessionMgr *mgr) { _mgr = mgr; }
+	void mgr(SessionMgr *mgr) { _mgr = mgr; }
 
-	kcommon::SessionMgr* mgr() { return _mgr; }
+	SessionMgr* mgr() { return _mgr; }
 
 private:
 	Session(const Session &other) {}
@@ -66,14 +68,15 @@ private:
 	void keep_alive();
 
 private:
+	int32 _id;
 	SessionType _type;
 	SessionStatus _state;
-	kcommon::NetIoHandler *_io_handler;
-	kcommon::SessionMgr *_mgr;
-	kcommon::FastQueue<ReadBuffer *> _msg_queue;
+	NetIoHandler *_io_handler;
+	SessionMgr *_mgr;
+	kcommon::FastQueue<char *> _msg_queue;
 };
 
-NMS_END // end namespace kcommon
+NMS_END // end namespace kcore
 
 #endif // __SESSION_H_
 

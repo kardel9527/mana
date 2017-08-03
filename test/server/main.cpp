@@ -3,10 +3,11 @@
 #include <signal.h>
 #include "test_s2c_session.h"
 #include "logger.h"
-#include "service.h"
+#include "core.h"
 
 using namespace kcommon;
 using namespace kevent;
+using namespace kcore;
 
 void init_instance() {
 	// init the logger
@@ -14,7 +15,7 @@ void init_instance() {
 	klog::Logger::instance()->open(klog::LL_MAX);
 
 	// init service
-	Service::create();
+	Core::create();
 }
 
 void uninit_instance() {
@@ -23,14 +24,14 @@ void uninit_instance() {
 	klog::Logger::destroy();
 
 	// uninit service
-	Service::destroy();
+	Core::destroy();
 }
 
 static bool s_server_active = true;
 
 void stop_server(int sig) {
 	s_server_active = false;
-	LOG_DEBUG("main", "receive stop singnal, server is stopping.");
+	LOG_DEBUG(klog::LM_MAIN, "receive stop singnal, server is stopping.");
 }
 
 int32 main(int32 argc, char *argv[]) {
@@ -41,18 +42,18 @@ int32 main(int32 argc, char *argv[]) {
 
 	init_instance();
 
-	LOG_DEBUG("main", "server start at %d", 1);
+	LOG_DEBUG(klog::LM_MAIN, "server start at %d", 1);
 
 	InetAddr addr("127.0.0.1", 7788);
-	Service *svc = Service::instance();
-	int32 ret = svc->open(addr, 1024, new SessionMgrTest());
-	ret = svc->start();
+	Core *core = Core::instance();
+	int32 ret = core->open(addr, 1024, new SessionMgrTest());
+	ret = core->start();
 
-	while (s_server_active) { usleep(10000); svc->update(); }
+	while (s_server_active) { usleep(10000); core->update(); }
 
-	svc->stop();
+	core->stop();
 
-	LOG_DEBUG("main", "server stoped.");
+	LOG_DEBUG(klog::LM_MAIN, "server stoped.");
 	
 	uninit_instance();
 

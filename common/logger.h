@@ -21,6 +21,12 @@ enum LogLevel {
 	LL_MAX
 };
 
+enum LogModule {
+	LM_MAIN = 0,
+	LM_NET = 1,
+	LM_CORE = 2,
+};
+
 class Logger : public kcommon::Singleton<klog::Logger> {
 public:
 	Logger() : _fp(0), _active(false), _limit(LL_MAX), _last_create_time(0), _thread(0) {}
@@ -30,7 +36,7 @@ public:
 
 	void close();
 
-	void log(const char *module, const char *file, const char *func, uint32 line, LogLevel lv, const char *fmt, ...);
+	void log(LogModule module, const char *file, const char *func, uint32 line, LogLevel lv, const char *fmt, ...);
 
 private:
 	Logger(const Logger &other) {}

@@ -3,20 +3,20 @@
 #include "session.h"
 #include "sessionmgr.h"
 
-class TestC2SSession : public kcommon::Session {
+class TestC2SSession : public kcore::Session {
 public:
-	virtual void handle_packet(kcommon::ReadBuffer *packet);
+	virtual void handle_packet(const char *data);
 
 	virtual void handle_connect();
 
 	virtual void handle_disconnect();
 };
 
-class SessionMgrTest : public kcommon::SessionMgr {
+class SessionMgrTest : public kcore::SessionMgr {
 public:
-	virtual kcommon::Session* create(int32 type);
+	virtual kcore::Session* create(int32 type);
 
-	virtual void destroy(kcommon::Session *s);
+	virtual void destroy(kcore::Session *s);
 };
 
 #endif // __TEST_C2S_SESSION_H_

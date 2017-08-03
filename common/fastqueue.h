@@ -21,6 +21,8 @@ public:
 	T pop() { T ret; RingBuffer<T, Lock>::read(ret); return ret; }
 
 	void push(const T &t) { RingBuffer<T, Lock>::write(t); }
+
+	void clear() { RingBuffer<T, Lock>::reset(); }
 };
 
 NMS_END // end namespace kcommon

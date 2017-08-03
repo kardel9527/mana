@@ -1,23 +1,22 @@
 #include "netiohandler.h"
 #include "session.h"
 
-NMS_BEGIN(kcommon)
-Session::Session() : _type(ST_NONE), _state(SS_NONE), _io_handler(new kcommon::NetIoHandler()), _mgr(0) {
+NMS_BEGIN(kcore)
+Session::Session() : _id(0), _type(ST_NONE), _state(SS_NONE), _io_handler(new NetIoHandler()), _mgr(0) {
 	_io_handler->session(this);
 }
 
 Session::~Session() {
+	_id = 0;
+	_type = ST_NONE;
+	_state = SS_NONE;
 	sdelete(_io_handler);
 	_mgr = 0;
 }
 
-void Session::on_recv(ReadBuffer *buff) {
-	AutoLock<LockType> guard(_msg_queue);
-	_msg_queue.push(buff);
-}
-
-int32 Session::id() {
-	return _io_handler->get_handle();
+void Session::on_recv(const char *data) {
+	kcommon::AutoLock<LockType> guard(_msg_queue);
+	_msg_queue.push((char *)data);
 }
 
 void Session::update() {
@@ -45,13 +44,13 @@ void Session::keep_alive() {
 }
 
 void Session::process_packet() {
-	AutoLock<LockType> guard(_msg_queue);
+	kcommon::AutoLock<LockType> guard(_msg_queue);
 	while (!_msg_queue.empty()) {
-		kcommon::ReadBuffer *buff = _msg_queue.pop();
-		handle_packet(buff);
-		delete buff;
+		char *packet = _msg_queue.pop();
+		handle_packet(packet);
+		::free(packet);
 	}
 }
 
-NMS_END // end namespace kcommon
+NMS_END // end namespace kcore
 

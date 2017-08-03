@@ -55,7 +55,16 @@ public:
 	// space can read.
 	uint32 avail() const { return _wr_idx - _rd_idx; }
 
-	void rd_move(uint32 n) { _rd_idx += n; }
+	T* rptr() { return _data + _rd_idx % _capacity; }
+	uint32 rsize() {
+		uint32 wr_idx = _wr_idx % _capacity;
+		uint32 rd_idx = _rd_idx % _capacity;
+		if (wr_idx >= rd_idx) return wr_idx - rd_idx;
+		if (rd_idx == 0) return wr_idx;
+		return _capacity - rd_idx;
+	}
+
+	void rmove(uint32 n) { _rd_idx += n; }
 
 	// real space for write
 	uint32 space() const { return _capacity - (_wr_idx - _rd_idx); }
@@ -78,6 +87,8 @@ public:
 		slow_swap(other._wr_idx, _wr_idx);
 		slow_swap(other._rd_idx, _rd_idx);
 	}
+
+	void reset() { _wr_idx = _rd_idx = 0; }
 
 private:
 	uint32 bytes(uint32 len) const { return len * sizeof(T); }

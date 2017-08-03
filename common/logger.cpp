@@ -1,7 +1,9 @@
 #include <pthread.h>
 #include <stdio.h>
+#include <assert.h>
 #include <sys/time.h>
 #include <stdarg.h>
+#include <unistd.h>
 #include "timeutil.h"
 #include "logger.h"
 
@@ -14,6 +16,12 @@ static const char *s_level_desc[] = {
 	"NOTICE",
 	"INFO",
 	"DEBUG",
+};
+
+static const char *s_module_desc[] = {
+	"main",
+	"net",
+	"core",
 };
 
 Logger::~Logger() {
@@ -46,7 +54,7 @@ void Logger::close() {
 }
 
 // TODO:more effective and thread safety?
-void Logger::log(const char *module, const char *file, const char *func, uint32 line, LogLevel lv, const char *fmt, ...) {
+void Logger::log(LogModule module, const char *file, const char *func, uint32 line, LogLevel lv, const char *fmt, ...) {
 	if (lv > _limit) return ;
 
 	time_t now = ::time(0);
@@ -61,7 +69,7 @@ void Logger::log(const char *module, const char *file, const char *func, uint32 
 		tnow.tm_min,
 		tnow.tm_sec,
 		s_level_desc[lv],
-		module,
+		s_module_desc[module],
 		file,
 		func,
 		line);
@@ -96,20 +104,22 @@ void Logger::flush() {
 	_log_buffer.lock();
 
 	while (_log_buffer.avail() > 0) {
-		char buffer[4096] = { 0 };
-		int32 len = _log_buffer.read(buffer, sizeof(buffer));
-		::fwrite(buffer, len, sizeof(char), _fp);
+		assert(_log_buffer.rptr() && _log_buffer.rsize());
+		int32 n = _log_buffer.rsize();
+		::fwrite(_log_buffer.rptr(), n, sizeof(char), _fp);
+		_log_buffer.rmove(n);
 	}
 
-	::fflush(_fp);
-
 	_log_buffer.unlock();
+
+	::fflush(_fp);
 }
 
 void* Logger::io_routine(void * arg) {
 	Logger *logger = (Logger *)arg;
 
 	while (logger->_active) {
+		::usleep(1000000);
 		logger->log_file_checking();
 		logger->flush();
 	}

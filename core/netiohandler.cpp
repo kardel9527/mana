@@ -5,88 +5,94 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <errno.h>
-#include "reactor.h"
-#include "bytebuffer.h"
+#include <assert.h>
+#include "./reactor/reactor.h"
 #include "stringutil.h"
 #include "session.h"
 #include "sessionmgr.h"
+#include "commandhandler.h"
 #include "netiohandler.h"
 
-NMS_BEGIN(kcommon)
+NMS_BEGIN(kcore)
 NetIoHandler::~NetIoHandler() {
 	sclose(_fd);
+	_active = false;
+	_session = 0;
+	_cmd_handler = 0;
 }
 
 int32 NetIoHandler::handle_input() {
 	if (!is_active()) return -1;
 
-	// recv 2048 bytes one time, and reactor will call it until nothing to recv.
-	char buff[2048] = { 0 };
-	int32 n = ::recv(_fd, buff, sizeof(buff), 0);
-	
+	assert(_recv_helper.ptr() && _recv_helper.len());
+
+	int32 n = ::recv(_fd, _recv_helper.ptr(), _recv_helper.len(), 0);
+
 	// connection was disconnected by peer.
 	if (n == 0) return -1;
 	// error curred, see if would block
 	if (n < 0) return (errno != EAGAIN && errno != EWOULDBLOCK) ? -1 : 0;
 
 	// write the recved n bytes into the recv buffer.
-	_rcv_buff.write(buff, n);
+	if (_recv_helper.complete(n)) {
+		// an error occured while parse the length of the packet.
+		if (!_recv_helper._ptr) return -1;
 
-	// try recv full packet.
-	// TODO: try avoid the data copy.
-	while (true) {
-		uint32 len = 0;
-		uint32 size = _rcv_buff.peek((char *)&len, sizeof(len));
-		// not a full head size
-		if (size != sizeof(len)) break;
+		_session->on_recv(_recv_helper._ptr);
 
-		// not a full packet
-		if (_rcv_buff.avail() < len + size) break;
-
-		// a full packet;
-		_rcv_buff.rd_move(sizeof(len));
-		kcommon::ReadBuffer *buffer = new kcommon::ReadBuffer();
-		buffer->resize(len);
-		_rcv_buff.read(buffer->wr_ptr(), len);
-		buffer->wr_move(len);
-		_session->on_recv(buffer);
+		_recv_helper.reset();
 	}
 
 	return 1;
 }
 
 int32 NetIoHandler::handle_output() {
-	AutoLock<LockType> guard(_snd_buff);
+	kcommon::AutoLock<LockType> guard(_snd_buff);
 	return send_impl();
 }
 
 int32 NetIoHandler::handle_close() {
 	_active = false;
-	// send left data in the buff.
-	while (send_impl() > 0) ;
 
 	// notice session manager.
 	_session->mgr()->handle_disconnect(_fd);
-
 	sclose(_fd);
 
 	return 0;
 }
 
 int32 NetIoHandler::send(const char *data, uint32 len, bool immediately/* = true*/) {
+	bool err = false;
+	bool snd_ordered = false;
 	_snd_buff.lock();
-	_snd_buff.write(data, len);
-	// send immediately
-	// TODO: when send failed, (peer closed?)
-	while (send_impl() > 0) ;
+	if (_snd_buff.avail() == 0) {
+		// send directly if no data in send cache.(this may be normal situation)
+		int32 status = send_immediate(data, len);
+		if (status >= 0 && (len - status) > 0) {
+			// ok, not send all.
+			_snd_buff.write(data + status, len - status);
+			snd_ordered = true;
+		}
+		err = (status < 0);
+	} else {
+		// put in send cache, and send to the net through the poller.(this may be slow than directly send.)
+		_snd_buff.write(data, len);
+		snd_ordered = true;
+	}
 	_snd_buff.unlock();
+
+	if (err) {
+		_cmd_handler->add(CommandHandler::Command(CommandHandler::CT_DISCONNECT, get_handle()));
+	} else if (snd_ordered) {
+		_cmd_handler->add(CommandHandler::Command(CommandHandler::CT_SEND_ORDERED, get_handle()));
+	}
+
 	return 0;
-	//return immediately ? handle_output() : 0;
 }
 
 int32 NetIoHandler::disconnect() {
 	_active = false;
-	::shutdown(_fd, SHUT_RDWR);
+	_cmd_handler->add(CommandHandler::Command(CommandHandler::CT_DISCONNECT, get_handle()));
 	return 0;
 }
 
@@ -119,21 +125,31 @@ bool NetIoHandler::is_active() {
 }
 
 int32 NetIoHandler::send_impl() {
-	// try send 2 kbytes one time.
-	char buff[1024 * 2] = { 0 };
-	int32 len = _snd_buff.peek(buff, sizeof(buff));
-	if (len <= 0) return 0;
+	if (_snd_buff.avail() == 0) return 0;
 
-	int32 n = ::send(_fd, buff, len, 0);
+	assert(_snd_buff.rptr() && _snd_buff.rsize());
+
+	int32 n = ::send(_fd, _snd_buff.rptr(), _snd_buff.rsize(), 0);
 	// connection was disconnected by peer.
 	if (n == 0) return -1;
 	// error curred, see if would block
 	if (n < 0) return (errno != EAGAIN && errno != EWOULDBLOCK) ? -1 : 0;
 
 	// ok, send n bytes.
-	_snd_buff.rd_move(n);
+	_snd_buff.rmove(n);
 
 	return 1;
+}
+
+int32 NetIoHandler::send_immediate(const char *data, uint32 len) {
+	int32 n = ::send(_fd, data, len, 0);
+	// connection was disconnected by peer.
+	if (n == 0) return -1;
+	// error curred, see if would block
+	if (n < 0) return (errno != EAGAIN && errno != EWOULDBLOCK) ? -1 : 0;
+
+	// ok, send n bytes.
+	return n;
 }
 
 NMS_END // end namespace kcommon

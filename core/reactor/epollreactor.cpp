@@ -73,24 +73,19 @@ EpollReactor::EpollReactor() : _epoll_fd(-1), _active(false), _timer_queue(0) {}
 
 EpollReactor::~EpollReactor() {
 	close();
+	_active = false;
+	sdelete(_timer_queue);
 }
 
 int32 EpollReactor::open(uint32 max_fd_sz, ITimerMgr *timer, SigMgr *sig) {
 	int32 ret = _handler.open(max_fd_sz);
 	if (ret) return ret;
 
-	if (timer) {
-		_timer_queue = timer;
-	} else {
-		_timer_queue = new TimerList();
-	}
+	_timer_queue = (timer ? timer : (new TimerList()));
 
 	_epoll_fd = epoll_create(max_fd_sz);
-	if (_epoll_fd == -1) {
-		return -1;
-	}
 
-	return 0;
+	return _epoll_fd == -1 ? -1 : 0;
 }
 
 void EpollReactor::close() {
@@ -102,6 +97,7 @@ int32 EpollReactor::handle_events(timet interval/* = 0ull*/) {
 
 	epoll_event event;
 	event.data.fd = -1;
+	event.events = 0;
 	int32 ret = epoll_wait(_epoll_fd, &event, 1, (int32)interval);
 	if (ret == -1 && errno != EINTR) {
 		// TODO: error ocured.
@@ -118,17 +114,22 @@ int32 EpollReactor::handle_events(timet interval/* = 0ull*/) {
 
 		IHandler *handler = entry->_handler;
 		int32 mask = event.events;
-		int32 (IHandler::*callback)() = 0;
-		if (mask & EPOLLIN) {
-			callback = &IHandler::handle_input;
-		} else if (mask & EPOLLOUT) {
-			callback = &IHandler::handle_output;
-		} else if (mask & EPOLLHUP || mask & EPOLLERR) {
-			callback = &IHandler::handle_error;
+		int32 status = 1;
+		if (mask & EPOLLHUP || mask & EPOLLERR) {
+			remove_handler(handler->get_handle());
+			return 0;
 		}
 
-		int32 status = 0;
-		do { status = (handler->*callback)(); } while (status > 0);
+		if (mask & EPOLLIN) {
+			while (status > 0) { status = handler->handle_input(); }
+		}
+
+		status = (status >= 0 ? 1 : -1);
+		if (mask & EPOLLOUT) {
+			// TODO: data maybe send partially, and the write event was removed, what to do?
+			while (status > 0) { status = handler->handle_output(); }
+		}
+
 		if (status < 0) {
 			remove_handler(handler->get_handle());
 		} else {
@@ -136,6 +137,7 @@ int32 EpollReactor::handle_events(timet interval/* = 0ull*/) {
 		}
 	} else {
 		// no io event happend, dispach a timer event.
+		// TODO: may have delay here, considering dispach io and timer event at time.
 		_timer_queue->expire_single();
 	}
 
@@ -165,6 +167,18 @@ int32 EpollReactor::register_handler(IHandler *handler, int32 mask) {
 
 int32 EpollReactor::register_handler(int32 sig_num, IHandler *handler) {
 	return -1;
+}
+
+int32 EpollReactor::append_handler_mask_once(int32 hid, int32 mask) {
+	HandlerEntry *entry = _handler.find(hid);
+	if (!entry) return -1;
+
+	epoll_event event;
+	event.data.fd = entry->_handler->get_handle();
+	event.events = entry->_mask | EPOLLERR | EPOLLET | EPOLLONESHOT | epoll_mask(mask);
+	epoll_ctl(_epoll_fd, EPOLL_CTL_MOD, event.data.fd, &event);
+
+	return 0;
 }
 
 int32 EpollReactor::remove_handler(int32 hid) {
@@ -216,8 +230,6 @@ int32 EpollReactor::epoll_mask(int32 mask) {
 		ret |= EPOLLIN;
 	if (mask & IHandler::HET_Write)
 		ret |= EPOLLOUT;
-
-	ret |= EPOLLERR;
 
 	return ret;
 }
