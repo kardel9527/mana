@@ -51,6 +51,9 @@ int32 Logger::open(LogLevel limit) {
 void Logger::close() {
 	_active = false;
 	::pthread_join(_thread, 0);
+
+	// flush rest data in cache.
+	flush();
 }
 
 // TODO:more effective and thread safety?
