@@ -19,5 +19,7 @@ typedef unsigned long long uint64;
 // unix time stamp in micro second
 typedef unsigned long long timet;
 
+#define invalid_handle -1
+
 #endif // __USER_DEFINED_TYPES_H_
 

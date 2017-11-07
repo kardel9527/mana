@@ -8,10 +8,11 @@ NMS_BEGIN(kcommon)
 template<typename T>
 class Singleton {
 public:
-	Singleton() : _instance(0) { assert(!_instance); _instance = static_cast<T *>(this); }
-	~Singleton() { sdelete(_instance); }
+	Singleton() { assert(!_instance); _instance = static_cast<T *>(this); }
+	~Singleton() { }
 
-	static void create() { new T(); }
+	template<typename ... Args>
+	static void create(const Args& ... args) { new T(args...); }
 
 	static void destroy() { sdelete(_instance); }
 

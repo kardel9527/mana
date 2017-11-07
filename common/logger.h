@@ -21,12 +21,6 @@ enum LogLevel {
 	LL_MAX
 };
 
-enum LogModule {
-	LM_MAIN = 0,
-	LM_NET = 1,
-	LM_CORE = 2,
-};
-
 class Logger : public kcommon::Singleton<klog::Logger> {
 public:
 	Logger() : _fp(0), _active(false), _limit(LL_MAX), _last_create_time(0), _thread(0) {}
@@ -36,7 +30,7 @@ public:
 
 	void close();
 
-	void log(LogModule module, const char *file, const char *func, uint32 line, LogLevel lv, const char *fmt, ...);
+	void log(const char *file, const char *func, uint32 line, LogLevel lv, const char *fmt, ...);
 
 private:
 	Logger(const Logger &other) {}
@@ -51,7 +45,7 @@ private:
 
 private:
 	FILE *_fp;
-	bool _active;
+	volatile bool _active;
 	LogLevel _limit;
 	uint64 _last_create_time;
 	unsigned long _thread;
@@ -60,12 +54,12 @@ private:
 
 NMS_END // end namespace klog
 
-#define LOG_FATAL(MODULE, FMT, ...) klog::Logger::instance()->log(MODULE, __FILE__, __FUNCTION__, __LINE__, klog::LL_FATAL, FMT, ##__VA_ARGS__)
-#define LOG_ERROR(MODULE, FMT, ...) klog::Logger::instance()->log(MODULE, __FILE__, __FUNCTION__, __LINE__, klog::LL_ERROR, FMT, ##__VA_ARGS__)
-#define LOG_WARNING(MODULE, FMT, ...) klog::Logger::instance()->log(MODULE, __FILE__, __FUNCTION__, __LINE__, klog::LL_WARNING, FMT, ##__VA_ARGS__)
-#define LOG_NOTICE(MODULE, FMT, ...) klog::Logger::instance()->log(MODULE, __FILE__, __FUNCTION__, __LINE__, klog::LL_NOTICE, FMT, ##__VA_ARGS__)
-#define LOG_INFO(MODULE, FMT, ...) klog::Logger::instance()->log(MODULE, __FILE__, __FUNCTION__, __LINE__, klog::LL_INFO, FMT, ##__VA_ARGS__)
-#define LOG_DEBUG(MODULE, FMT, ...) klog::Logger::instance()->log(MODULE, __FILE__, __FUNCTION__, __LINE__, klog::LL_DEBUG, FMT, ##__VA_ARGS__)
+#define LOG_FATAL(FMT, ...) klog::Logger::instance()->log(__FILE__, __FUNCTION__, __LINE__, klog::LL_FATAL, FMT, ##__VA_ARGS__)
+#define LOG_ERROR(FMT, ...) klog::Logger::instance()->log(__FILE__, __FUNCTION__, __LINE__, klog::LL_ERROR, FMT, ##__VA_ARGS__)
+#define LOG_WARNING(FMT, ...) klog::Logger::instance()->log(__FILE__, __FUNCTION__, __LINE__, klog::LL_WARNING, FMT, ##__VA_ARGS__)
+#define LOG_NOTICE(FMT, ...) klog::Logger::instance()->log(__FILE__, __FUNCTION__, __LINE__, klog::LL_NOTICE, FMT, ##__VA_ARGS__)
+#define LOG_INFO(FMT, ...) klog::Logger::instance()->log(__FILE__, __FUNCTION__, __LINE__, klog::LL_INFO, FMT, ##__VA_ARGS__)
+#define LOG_DEBUG(FMT, ...) klog::Logger::instance()->log(__FILE__, __FUNCTION__, __LINE__, klog::LL_DEBUG, FMT, ##__VA_ARGS__)
 
 #endif // __LOGGER_H_
 

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 rm -rf ./common/obj;
-rm -rf ./core/obj;
+rm -rf ./network/obj;
 rm -rf ./test/client/obj;
 rm -rf ./test/server/obj;
 rm -rf ./run/client;

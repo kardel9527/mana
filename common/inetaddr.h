@@ -21,11 +21,11 @@ public:
 
 	void set(const char *ip, uint16 port) { _addr.sin_port = ::htons(port); _addr.sin_addr.s_addr = ::inet_addr(ip); }
 
-	char* ip() { return ::inet_ntoa(_addr.sin_addr); }
+	const char* ip() const { return ::inet_ntoa(_addr.sin_addr); }
 
-	uint32 ip_addr() { return _addr.sin_addr.s_addr; }
+	uint32 ip_addr() const { return _addr.sin_addr.s_addr; }
 
-	uint16 port() { return _addr.sin_port; }
+	uint16 port() const { return _addr.sin_port; }
 
 	void* addr() { return (void *)&_addr; }
 	

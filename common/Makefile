@@ -2,7 +2,7 @@
 LD  := g++ 
 AR  := ar rucs 
 RM	:= rm -rf
-CFLAGS  := -Wall -g -m64
+CFLAGS  := -Wall -g -m64 -std=c++11
 #CFLAGS := -Wall -O2 -m64
 INCLUDE := -I. -I../reactor/
 LDFLAGS := -m64 -lpthread

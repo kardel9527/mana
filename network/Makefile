@@ -2,17 +2,15 @@
 LD  := g++ 
 AR  := ar rucs 
 RM	:= rm -rf
-CFLAGS  := -Wall -g -m64
-#CFLAGS := -Wall -O2 -m64
-INCLUDE := -I. -I../common/
+CFLAGS  := -Wall -g -m64 -std=c++11
+INCLUDE := -I. -I../common/ -I./reactor/
 LDFLAGS := -m64 -lpthread
 #LIBS    := ../../run/lib/libev.a ../../run/lib/libcommon.a ../../run/lib/libpublic.a \
 	../../run/lib/libluaLib.a ../../run/lib/libdbaccess.a  ../../run/lib/libmysqlclient.so ../../run/lib/libsnappy.a ../../run/lib/liblz4.a
 
 TARGETPATH := ../run/lib/
 $(shell mkdir -p $(TARGETPATH))
-#TARGET  := $(TARGETPATH)/test
-TARGET := $(TARGETPATH)/libcore.a
+TARGET := $(TARGETPATH)/libnetwork.a
 # 临时目标文件的存放路径
 OBJPATH := ./obj
 # 临时目录不存在时自动创建

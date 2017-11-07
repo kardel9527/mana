@@ -1,37 +1,49 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <signal.h>
-#include "test_s2c_session.h"
 #include "logger.h"
-#include "core.h"
+#include "netiohandler.h"
+#include "netmgrbase.h"
+#include "network.h"
 
 using namespace kcommon;
-using namespace kevent;
-using namespace kcore;
+using namespace network;
+
+class TestClientHandler : public NetIoHandler {
+public:
+	TestClientHandler() : NetIoHandler(NHLT_CLIENT) {}
+
+	virtual void handle_connect() {
+		LOG_INFO("a session [id:%d type:%d addr:%s port:%d] connected.", id(), type(), addr().ip(), addr().port());
+	}
+
+	virtual void handle_disconnect() {
+		LOG_INFO("a session [id:%d type:%d addr:%s port:%d] disconnected.", id(), type(), addr().ip(), addr().port());
+	}
+
+	virtual void handle_packet(const char *data) {
+		uint32 size = *(uint32 *)data;
+		send(data, size);
+	}
+};
 
 void init_instance() {
 	// init the logger
 	klog::Logger::create();
 	klog::Logger::instance()->open(klog::LL_MAX);
-
-	// init service
-	Core::create();
 }
 
 void uninit_instance() {
 	// uninit logger
 	klog::Logger::instance()->close();
 	klog::Logger::destroy();
-
-	// uninit service
-	Core::destroy();
 }
 
 static bool s_server_active = true;
 
 void stop_server(int sig) {
 	s_server_active = false;
-	LOG_DEBUG(klog::LM_MAIN, "receive stop singnal, server is stopping.");
+	LOG_DEBUG("receive stop singnal, server is stopping.");
 }
 
 int32 main(int32 argc, char *argv[]) {
@@ -42,18 +54,23 @@ int32 main(int32 argc, char *argv[]) {
 
 	init_instance();
 
-	LOG_DEBUG(klog::LM_MAIN, "server start at %d", 1);
+	LOG_DEBUG("server start at %d", 1);
 
-	InetAddr addr("127.0.0.1", 7788);
-	Core *core = Core::instance();
-	int32 ret = core->open(addr, 1024, new SessionMgrTest());
-	ret = core->start();
+	InetAddr addr("0.0.0.0", 7788);
+	NetWork net(new NetMgrBase());
+	int32 ret = net.register_acceptor((int32)NHLT_CLIENT, addr);
+	
+	for (int i = 0; i < 10000; ++i) {
+		net.add_server_handler(new TestClientHandler());
+	}
 
-	while (s_server_active) { usleep(10000); core->update(); }
+	ret = net.start();
 
-	core->stop();
+	while (s_server_active) { usleep(10000); net.update(); }
 
-	LOG_DEBUG(klog::LM_MAIN, "server stoped.");
+	net.stop();
+
+	LOG_DEBUG("server stoped.");
 	
 	uninit_instance();
 

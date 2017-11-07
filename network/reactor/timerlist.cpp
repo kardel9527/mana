@@ -6,7 +6,7 @@
 
 NMS_BEGIN(kevent)
 
-TimerList::TimerList() : _head(0), _seed(0) {}
+TimerList::TimerList() : _head(0) { }
 
 TimerList::~TimerList() {
 	while (_head) {
@@ -14,18 +14,17 @@ TimerList::~TimerList() {
 		_head = _head->_next;
 		sdelete(tmp);
 	}
-	
+
 	_head = 0;
-	_seed = 0;
 }
 
-int32 TimerList::add(timet delay, timet interval, IHandler *handler) {
+int32 TimerList::add(int32 delay, int32 itv, IHandler *handler) {
 	assert(handler);
 	Node *node = new Node();
-	node->_id = ++_seed;
+	node->_id = gen_id();
 	node->_handler = handler;
 	node->_timeout = ktimeutil::get_current_time() + delay;
-	node->_interval = interval;
+	node->_itv = itv;
 	
 	node->_next = _head;
 	_head = node;
@@ -61,8 +60,8 @@ int32 TimerList::expire_single() {
 		timet now = ktimeutil::get_current_time();
 		if (curr->_timeout <= now) {
 			curr->_handler->handle_timeout();
-			if (curr->_interval) {
-				curr->_timeout += curr->_interval;
+			if (curr->_itv) {
+				curr->_timeout += curr->_itv;
 				// put in tail
 				Node *tail = curr;
 				while (tail->_next) tail = tail->_next;
@@ -93,9 +92,9 @@ int32 TimerList::expire_all() {
 		timet now = ktimeutil::get_current_time();
 		if (curr->_timeout >= now) {
 			curr->_handler->handle_timeout();
-			if (curr->_interval) {
+			if (curr->_itv) {
 				// TODO: put in head.
-				curr->_timeout += curr->_interval;
+				curr->_timeout += curr->_itv;
 			} else {
 				remove(curr->_id);
 			}
@@ -106,5 +105,5 @@ int32 TimerList::expire_all() {
 	return 0;
 }
 
-NMS_END // kcommon
+NMS_END // kevent
 

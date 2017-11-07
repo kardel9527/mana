@@ -2,12 +2,12 @@
 LD  := g++ 
 AR  := ar rucs 
 RM	:= rm -rf
-CFLAGS  := -Wall -g -m64
+CFLAGS  := -Wall -g -m64 -std=c++11
 #CFLAGS := -Wall -O2 -m64
-INCLUDE := -I. -I../../common/ -I../../core/ 
+INCLUDE := -I. -I../../common/ -I../../network/ -I../../network/reactor/
 LDFLAGS := -m64 -lpthread
 #LIBS    := ../../run/lib/libcommon.a ../../run/lib/libcore.a
-LIBS    := ../../run/lib/libcore.a ../../run/lib/libcommon.a
+LIBS    := ../../run/lib/libnetwork.a ../../run/lib/libcommon.a
 
 TARGETPATH := ../../run/
 $(shell mkdir -p $(TARGETPATH))
