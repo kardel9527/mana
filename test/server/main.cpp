@@ -48,6 +48,7 @@ void stop_server(int sig) {
 
 int32 main(int32 argc, char *argv[]) {
 	// handle signal
+	::signal(SIGPIPE, SIG_IGN);
 	::signal(SIGINT, stop_server);
 	::signal(SIGQUIT, stop_server);
 	::signal(SIGKILL, stop_server);

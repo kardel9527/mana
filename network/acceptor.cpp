@@ -62,7 +62,12 @@ int32 Acceptor::handle_input() {
 
 		// create a client session
 		NetIoHandler *handler = reactor()->net_mgr()->get_handler(_type);
-		assert(handler && "empty handler!");
+		if (!handler) {
+			// no enough handler, may notice the net mgr ?
+			::close(fd);
+			return 1;
+		}
+
 		handler->addr(addr);
 		handler->handle(fd);
 		handler->reactor(reactor());
