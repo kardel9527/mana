@@ -48,6 +48,7 @@ void stop_server(int sig) {
 
 int32 main(int32 argc, char *argv[]) {
 	// handle signal
+	::signal(SIGPIPE, SIG_IGN);
 	::signal(SIGINT, stop_server);
 	::signal(SIGQUIT, stop_server);
 	::signal(SIGKILL, stop_server);
@@ -58,9 +59,13 @@ int32 main(int32 argc, char *argv[]) {
 	InetAddr addr("127.0.0.1", 7788);
 	NetWork net(new NetMgrBase());
 
-	TestClientHandler *handler = new TestClientHandler();
-	handler->addr(addr);
-	net.add_client_handler(handler);
+	// add 100 connections
+	for (int i = 0; i < 100; ++i) {
+		TestClientHandler *handler = new TestClientHandler();
+		handler->addr(addr);
+		net.add_client_handler(handler);
+	}
+
 	int32 ret = net.start();
 
 	while (s_server_active) { usleep(10000); net.update(); }

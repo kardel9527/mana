@@ -1,8 +1,7 @@
 #!/bin/bash
 
-while [ "1"="1" ]
+for i in {1..100}
 do
 	./client &
-	sleep 6
-	killall client
 done
+
