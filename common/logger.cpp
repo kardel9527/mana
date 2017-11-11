@@ -1,4 +1,6 @@
 #include <pthread.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <stdio.h>
 #include <assert.h>
 #include <sys/time.h>
@@ -23,12 +25,12 @@ Logger::~Logger() {
 	_active = false;
 	_last_create_time = 0;
 	_limit = LL_MAX;
-	_thread = 0;
+	_thread_id = 0;
 }
 
 int32 Logger::open(LogLevel limit, const char *prefix, const char *path/* = "./path"*/) {
 	::strncpy(_log_prefix, prefix, sizeof(_log_prefix));
-	::strncpy(_log_path, prefix, sizeof(_log_path));
+	::strncpy(_log_path, path, sizeof(_log_path));
 
 	// if the path not exist, create it.
 	if (::access(_log_path, F_OK) && ::mkdir(_log_path, S_IRWXU)) {
@@ -59,7 +61,7 @@ void Logger::close() {
 
 	_active = false;
 	if (_thread_id) {
-		::pthread_join(_thread, 0);
+		::pthread_join(_thread_id, 0);
 	}
 
 	// flush rest data in cache.
