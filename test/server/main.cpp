@@ -30,7 +30,7 @@ public:
 void init_instance() {
 	// init the logger
 	klog::Logger::create();
-	klog::Logger::instance()->open(klog::LL_MAX);
+	klog::Logger::instance()->open(klog::LL_MAX, "svr");
 }
 
 void uninit_instance() {

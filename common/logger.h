@@ -23,10 +23,10 @@ enum LogLevel {
 
 class Logger : public kcommon::Singleton<klog::Logger> {
 public:
-	Logger() : _fp(0), _active(false), _limit(LL_MAX), _last_create_time(0), _thread(0) {}
+	Logger() : _fp(0), _active(false), _limit(LL_MAX), _last_create_time(0), _thread_id(0) {}
 	~Logger();
 
-	int32 open(LogLevel limit);
+	int32 open(LogLevel limit, const char *prefix, const char *path="./log/");
 
 	void close();
 
@@ -47,8 +47,10 @@ private:
 	FILE *_fp;
 	volatile bool _active;
 	LogLevel _limit;
+	char _log_prefix[64];
+	char _log_path[64];
 	uint64 _last_create_time;
-	unsigned long _thread;
+	uint64 _thread_id;
 	kcommon::RingBuffer<char> _log_buffer;
 };
 

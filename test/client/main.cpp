@@ -14,12 +14,14 @@ public:
 	TestClientHandler() : NetIoHandler(NHLT_CLIENT) {}
 
 	virtual void handle_connect() {
+		LOG_INFO("a session [id:%d type:%d addr:%s port:%d] connected.", id(), type(), addr().ip(), addr().port());
 		char buff[1024] = { 0 };
 		*(int *)buff = 1024;
 		send(buff, 1024);
 	}
 
 	virtual void handle_disconnect() {
+		LOG_INFO("a session [id:%d type:%d addr:%s port:%d] disconnected.", id(), type(), addr().ip(), addr().port());
 	}
 
 	virtual void handle_packet(const char *data) {
@@ -31,7 +33,7 @@ public:
 void init_instance() {
 	// init the logger
 	klog::Logger::create();
-	klog::Logger::instance()->open(klog::LL_MAX);
+	klog::Logger::instance()->open(klog::LL_MAX, "client");
 }
 
 void uninit_instance() {
@@ -48,6 +50,7 @@ void stop_server(int sig) {
 
 int32 main(int32 argc, char *argv[]) {
 	// handle signal
+	::signal(SIGPIPE, SIG_IGN);
 	::signal(SIGINT, stop_server);
 	::signal(SIGQUIT, stop_server);
 	::signal(SIGKILL, stop_server);

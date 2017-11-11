@@ -26,7 +26,16 @@ Logger::~Logger() {
 	_thread = 0;
 }
 
-int32 Logger::open(LogLevel limit) {
+int32 Logger::open(LogLevel limit, const char *prefix, const char *path/* = "./path"*/) {
+	::strncpy(_log_prefix, prefix, sizeof(_log_prefix));
+	::strncpy(_log_path, prefix, sizeof(_log_path));
+
+	// if the path not exist, create it.
+	if (::access(_log_path, F_OK) && ::mkdir(_log_path, S_IRWXU)) {
+		// create path error.
+		return -1;
+	}
+
 	log_file_checking();
 	if (!_fp) return -1;
 
@@ -34,8 +43,11 @@ int32 Logger::open(LogLevel limit) {
 	_active = true;
 
 	// start the io write thread.
-	int32 ret = ::pthread_create((pthread_t *)&_thread, NULL, &Logger::io_routine, this);
-	if (ret != 0) return ret;
+	int32 ret = ::pthread_create((pthread_t *)&_thread_id, NULL, &Logger::io_routine, this);
+	if (ret != 0) {
+		close();
+		return ret;
+	}
 
 	_limit = limit;
 
@@ -43,8 +55,12 @@ int32 Logger::open(LogLevel limit) {
 }
 
 void Logger::close() {
+	if (!_active) return ;
+
 	_active = false;
-	::pthread_join(_thread, 0);
+	if (_thread_id) {
+		::pthread_join(_thread, 0);
+	}
 
 	// flush rest data in cache.
 	flush();
@@ -87,7 +103,7 @@ void Logger::log_file_checking() {
 
 	char buff[128] = { 0 };
 	struct tm tnow = *::localtime((time_t *)&now);
-	sprintf(buff, "./log/%04d-%02d-%02d.log", tnow.tm_year + 1900, tnow.tm_mon + 1, tnow.tm_mday);
+	sprintf(buff, "%s/%s-%04d-%02d-%02d.log", _log_path, _log_prefix, tnow.tm_year + 1900, tnow.tm_mon + 1, tnow.tm_mday);
 
 	if (_fp) ::fclose(_fp);
 
