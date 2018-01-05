@@ -159,7 +159,7 @@ int32 NetIoHandler::reconnect() {
 
 void NetIoHandler::update_base() {
 	// handle max 64 packets a round.
-	char **packet[64] = { 0 };
+	char *packet[64] = { 0 };
 	_recved_packet.lock();
 	int32 ret = _recved_packet.read((char **)packet, sizeof(packet));
 	_recved_packet.unlock();

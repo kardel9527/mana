@@ -81,9 +81,6 @@ int32 NetWork::start() {
 }
 
 void NetWork::stop() {
-	// kick off all net handler
-	_net_mgr->kickall();
-
 	// stop all acceptor.
 	for (auto it = _acceptor.begin(); it != _acceptor.end(); ++it) {
 		(*it)->close();
@@ -91,7 +88,8 @@ void NetWork::stop() {
 
 	// close connector.
 	_connector->close();
-
+	// kick off all net handler
+	_net_mgr->kickall();
 	// stop reactor finally.
 	_main_reactor->end_event_loop();
 }
