@@ -19,6 +19,7 @@ NetIoHandler::~NetIoHandler() {
 
 	_type = NHLT_MAX;
 	_active = false;
+	_send_ordered = false;
 }
 
 int32 NetIoHandler::handle_input() {
@@ -63,6 +64,8 @@ int32 NetIoHandler::handle_output() {
 		}
 	}
 	_snd_buff.unlock();
+
+	_send_ordered = false;
 	
 	return ret;
 }
@@ -75,11 +78,16 @@ int32 NetIoHandler::handle_close() {
 	// release the uncomplete packet if.
 	_recv_helper.release();
 
-	// notice net mgr.
-	reactor()->net_mgr()->handle_disconnect(this);
+	// try send rest data.
+	handle_output();
+	_snd_buff.reset();
+	_send_ordered = false;
 
 	// close the handle.
 	safe_close_handle(this);
+
+	// notice net mgr.
+	reactor()->net_mgr()->handle_disconnect(this);
 
 	return 0;
 }
@@ -112,8 +120,9 @@ int32 NetIoHandler::send(const char *data, uint32 len, bool immediately/* = true
 
 	if (err) {
 		reactor()->add_cmd(CommandHandler::CT_DISCONNECT, this);
-	} else if (snd_ordered) {
+	} else if (snd_ordered && !_send_ordered) {
 		reactor()->add_cmd(CommandHandler::CT_SEND_ORDERED, this);
+		_send_ordered = true;
 	}
 
 	return 0;
@@ -157,7 +166,7 @@ int32 NetIoHandler::reconnect() {
 	return 0;
 }
 
-void NetIoHandler::update_base() {
+int32 NetIoHandler::update_base() {
 	// handle max 64 packets a round.
 	char *packet[64] = { 0 };
 	_recved_packet.lock();
@@ -168,6 +177,8 @@ void NetIoHandler::update_base() {
 		handle_packet((char *)packet[i]);
 		sfree(packet[i]);
 	}
+
+	return ret;
 }
 
 int32 NetIoHandler::send_immediate(const char *data, uint32 len) {

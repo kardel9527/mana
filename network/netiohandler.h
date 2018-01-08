@@ -8,7 +8,6 @@
 #include "lock.h"
 
 NMS_BEGIN(network)
-class Session;
 class CommandHandler;
 
 enum NetIoHandlerLogicType {
@@ -19,6 +18,13 @@ enum NetIoHandlerLogicType {
 	NHLT_DB = 4, // connection from or to database server.
 
 	NHLT_MAX
+};
+
+enum HandlerDisconnectReasion {
+	HDR_NONE = 0, // disconnect none
+	HDR_KICK = 1, // kicked off
+	HDR_ERR = 2, // error occured
+	HDR_PEER = 3, // disconnect by peer.
 };
 
 class NetIoHandler : public kevent::IHandler {
@@ -61,7 +67,7 @@ class NetIoHandler : public kevent::IHandler {
 	};
 
 public:
-	NetIoHandler() : _id(-1), _type(NHLT_MAX), _active(false) { }
+	NetIoHandler() : _id(-1), _type(NHLT_MAX), _active(false), _send_ordered(false) { }
 	NetIoHandler(int32 type) : _id(-1), _type(type), _active(false) { }
 	~NetIoHandler();
 
@@ -86,7 +92,8 @@ public:
 
 	int32 reconnect();
 
-	void update_base();
+	// return packet num handled.
+	int32 update_base();
 
 	void active(bool active) { _active = active; }
 	bool active() const { return _active; }
@@ -104,6 +111,7 @@ private:
 	int32 _id;
 	int32 _type;
 	volatile bool _active;
+	volatile bool _send_ordered;
 	kcommon::InetAddr _inet_addr;
 	kcommon::RingBuffer<byte> _snd_buff;
 	kcommon::RingBuffer<char *> _recved_packet;
