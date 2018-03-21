@@ -44,7 +44,7 @@ int32 TimerHeap::expire_single(uint64 now) {
 
 	node._handler->handle_timeout();
 	if (!node._interval) {
-		remove(0);
+		remove(node._id);
 	} else {
 		node._timeout += node._interval;
 		filter_down(0);
