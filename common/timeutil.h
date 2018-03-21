@@ -7,7 +7,7 @@ NMS_BEGIN(ktimeutil)
 
 bool check_is_same_day(uint64 t1, uint64 t2);
 
-timet get_current_time();
+uint64 get_current_time();
 
 NMS_END // ktimeUtil
 

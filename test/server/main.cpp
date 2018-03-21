@@ -5,38 +5,26 @@
 #include "netiohandler.h"
 #include "netmgrbase.h"
 #include "network.h"
+#include "clientsocket.h"
+#include "roommgr.h"
 
 using namespace kcommon;
 using namespace network;
-
-class TestClientHandler : public NetIoHandler {
-public:
-	TestClientHandler() : NetIoHandler(NHLT_CLIENT) {}
-
-	virtual void handle_connect() {
-		LOG_INFO("a session [id:%d type:%d addr:%s port:%d] connected.", id(), type(), addr().ip(), addr().port());
-	}
-
-	virtual void handle_disconnect() {
-		LOG_INFO("a session [id:%d type:%d addr:%s port:%d] disconnected.", id(), type(), addr().ip(), addr().port());
-	}
-
-	virtual void handle_packet(const char *data) {
-		uint32 size = *(uint32 *)data;
-		send(data, size);
-	}
-};
 
 void init_instance() {
 	// init the logger
 	klog::Logger::create();
 	klog::Logger::instance()->open(klog::LL_MAX, "svr");
+
+	RoomMgr::create();
 }
 
 void uninit_instance() {
 	// uninit logger
 	klog::Logger::instance()->close();
 	klog::Logger::destroy();
+	
+	RoomMgr::destroy();
 }
 
 static bool s_server_active = true;
@@ -47,6 +35,10 @@ void stop_server(int sig) {
 }
 
 int32 main(int32 argc, char *argv[]) {
+#ifdef DAEMON
+	if (::daemon(1, 0)) return -1;
+#endif // DAEMON
+
 	// handle signal
 	::signal(SIGPIPE, SIG_IGN);
 	::signal(SIGINT, stop_server);

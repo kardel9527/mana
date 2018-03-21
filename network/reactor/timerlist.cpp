@@ -1,12 +1,11 @@
 #include <assert.h>
 #include <time.h>
 #include "ihandler.h"
-#include "timeutil.h"
 #include "timerlist.h"
 
 NMS_BEGIN(kevent)
 
-TimerList::TimerList() : _head(0) { }
+TimerList::TimerList() : _seed(0), _head(0) { }
 
 TimerList::~TimerList() {
 	while (_head) {
@@ -18,12 +17,12 @@ TimerList::~TimerList() {
 	_head = 0;
 }
 
-int32 TimerList::add(int32 delay, int32 itv, IHandler *handler) {
+int32 TimerList::add(uint64 start, uint32 itv, IHandler *handler) {
 	assert(handler);
 	Node *node = new Node();
-	node->_id = gen_id();
+	node->_id = ++_seed;
 	node->_handler = handler;
-	node->_timeout = ktimeutil::get_current_time() + delay;
+	node->_timeout = start;
 	node->_itv = itv;
 	
 	node->_next = _head;
@@ -53,11 +52,10 @@ void TimerList::remove(int32 id) {
 	}
 }
 
-int32 TimerList::expire_single() {
+int32 TimerList::expire_single(uint64 now) {
 	Node *curr = _head;
 	Node *prev = _head;
 	while (curr) {
-		timet now = ktimeutil::get_current_time();
 		if (curr->_timeout <= now) {
 			curr->_handler->handle_timeout();
 			if (curr->_itv) {
@@ -86,10 +84,9 @@ int32 TimerList::expire_single() {
 	return 0;
 }
 
-int32 TimerList::expire_all() {
+int32 TimerList::expire_all(uint64 now) {
 	Node *curr = _head;
 	while (curr) {
-		timet now = ktimeutil::get_current_time();
 		if (curr->_timeout >= now) {
 			curr->_handler->handle_timeout();
 			if (curr->_itv) {

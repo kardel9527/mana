@@ -40,6 +40,9 @@ void CommandHandler::handle_cmd(const CommandHandler::Command &cmd) {
 	assert(cmd._handler && "empty handler!");
 	switch (cmd._cmd) {
 	case CT_SEND_ORDERED:
+		// already closed, skip
+		if (!cmd._handler->active()) break;
+				//
 		// add write flag here.
 		cmd._handler->flag(kcommon::bit_enable(cmd._handler->flag(), IHandler::HET_WRITE));
 		reactor()->modify_handler(cmd._handler);

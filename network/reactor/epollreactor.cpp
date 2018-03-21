@@ -6,6 +6,7 @@
 #include "ihandler.h"
 #include "petty.h"
 #include "timerlist.h"
+#include "timeutil.h"
 #include "epollreactor.h"
 
 NMS_BEGIN(kevent)
@@ -43,7 +44,7 @@ void EpollReactor::close() {
 int32 EpollReactor::handle_events(uint32 itv/* = 0ull*/) {
 	if (!_event->data.ptr) {
 		// TODO: handle more event here?
-		itv = timer_mgr()->expire_time(itv);
+		itv = timer_mgr()->expire_time(ktimeutil::get_current_time(), itv);
 		int32 ret = ::epoll_wait(_epoll_fd, _event, 1, itv);
 		if (ret == -1 && errno != EINTR) {
 			// TODO: error ocured.
@@ -152,7 +153,7 @@ int32 EpollReactor::dispatch_io_event() {
 }
 
 int32 EpollReactor::dispatch_timer_event() {
-	return timer_mgr()->expire_single();
+	return timer_mgr()->expire_single(ktimeutil::get_current_time());
 }
 
 NMS_END // end namespace kevent

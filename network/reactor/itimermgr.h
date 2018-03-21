@@ -9,26 +9,20 @@ class IHandler;
 
 class ITimerMgr {
 public:
-	ITimerMgr() : _seed(0) {}
+	ITimerMgr() {}
 
 	virtual ~ITimerMgr() {}
 
 	// deleay in s, interval in micro seconds, interval requal 0 means not repeat
-	virtual int32 add(int32 delay, int32 itv, IHandler *handler) { return 0; }
+	virtual int32 add(uint64 start, uint32 itv, IHandler *handler) { return 0; }
 
 	virtual void remove(int32 id) {}
 
-	virtual int32 expire_single() { return 0; }
+	virtual int32 expire_single(uint64 now) { return 0; }
 
-	virtual int32 expire_all() { return 0; }
+	virtual int32 expire_all(uint64 now) { return 0; }
 
-	virtual int32 expire_time(int32 itv) { return itv; }
-
-protected:
-	int32 gen_id() { return ++_seed; }
-
-private:
-	int32 _seed;
+	virtual uint32 expire_time(uint64 now, uint32 itv) { return itv; }
 };
 
 NMS_END // end namespace kevent

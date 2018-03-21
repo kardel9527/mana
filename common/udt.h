@@ -1,23 +1,21 @@
 #ifndef __USER_DEFINED_TYPES_H_
 #define __USER_DEFINED_TYPES_H_
+#include <stdint.h>
 
 // 1 byte
-typedef char int8;
-typedef unsigned char uint8;
+typedef int8_t int8;
+typedef uint8_t uint8;
 typedef char byte;
-typedef unsigned char ubyte;
-// 2 bytes
-typedef short int16;
-typedef unsigned short uint16;
-// 4 bytes
-typedef int int32;
-typedef unsigned int uint32;
-// 8 bytes
-typedef long long int64;
-typedef unsigned long long uint64;
 
-// unix time stamp in micro second
-typedef unsigned long long timet;
+// 2 bytes
+typedef int16_t int16;
+typedef uint16_t uint16;
+// 4 bytes
+typedef int32_t int32;
+typedef uint32_t uint32;
+// 8 bytes
+typedef int64_t int64;
+typedef uint64_t uint64;
 
 #define invalid_handle -1
 

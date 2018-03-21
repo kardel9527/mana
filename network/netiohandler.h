@@ -31,7 +31,7 @@ class NetIoHandler : public kevent::IHandler {
 	const static uint32 _s_max_packet = 1024 * 640; // default max 640k per packet.
 
 	struct RecvHelper {
-		char *_ptr;
+		byte *_ptr;
 		uint32 _size;
 		uint32 _len;
 
@@ -57,7 +57,7 @@ class NetIoHandler : public kevent::IHandler {
 				if (size >= _s_max_packet) return true;
 
 				// TODO: use a pool instead.
-				_ptr = (char *)::malloc(size);
+				_ptr = (byte *)::malloc(size);
 				*(uint32 *)_ptr = _size;
 				_size = size;
 				return false;
@@ -114,7 +114,7 @@ private:
 	volatile bool _send_ordered;
 	kcommon::InetAddr _inet_addr;
 	kcommon::RingBuffer<byte> _snd_buff;
-	kcommon::RingBuffer<char *> _recved_packet;
+	kcommon::RingBuffer<byte *> _recved_packet;
 	RecvHelper _recv_helper;
 };
 

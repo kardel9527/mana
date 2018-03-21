@@ -11,7 +11,7 @@ bool check_is_same_day(uint64 t1, uint64 t2) {
 	return tm1.tm_year == tm2.tm_year && tm1.tm_yday == tm2.tm_yday;
 }
 
-timet get_current_time() {
+uint64 get_current_time() {
 	struct timeval now;
 	memset(&now, 0, sizeof(now));
 	::gettimeofday(&now, NULL);
