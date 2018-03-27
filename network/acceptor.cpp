@@ -46,6 +46,7 @@ int32 Acceptor::open() {
 }
 
 void Acceptor::close() {
+	if (handle() == invalid_handle) return ;
 	unregister_io_event();
 }
 

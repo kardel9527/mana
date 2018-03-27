@@ -10,6 +10,7 @@ int32 CommandHandler::open(int32 itv) {
 }
 
 void CommandHandler::close() {
+	if (handle() == invalid_handle) return ;
 	unregister_timer_event();
 }
 

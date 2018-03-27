@@ -13,6 +13,7 @@ int32 Connector::open(int32 itv) {
 }
 
 void Connector::close() {
+	if (handle() == invalid_handle) return ;
 	unregister_timer_event();
 }
 
