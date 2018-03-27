@@ -87,7 +87,7 @@ int32 Acceptor::handle_input() {
 }
 
 int32 Acceptor::handle_close() {
-	close();
+	safe_close_handle(this);
 	return 0;
 }
 

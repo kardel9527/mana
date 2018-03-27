@@ -104,7 +104,7 @@ void NetMgrBase::update_handler_operation() {
 		case HOT_DISCONNECT:
 			assert(_handler_map.find(operation._handler->id()) != _handler_map.end() && "handler not exist.");
 			_handler_map.erase(operation._handler->id());
-			while (operation._handler->update_base() > 0) ;
+			operation._handler->update_base();
 			operation._handler->handle_disconnect();
 			put_handler(operation._handler);
 			break;

@@ -27,10 +27,10 @@ public:
 	int32 flag() const { return _handle_flag; }
 
 	int32 register_io_event() { return reactor()->register_handler(this); }
-	void unregister_io_event() { reactor()->unregister_handler(handle()); _handle = invalid_handle; }
+	void unregister_io_event() { reactor()->unregister_handler(handle()); handle_close(); }
 
 	int32 register_timer_event(int32 itv) { _handle = reactor()->register_timer_handler(this, 0, itv); return _handle > 0 ? 0 : -1; }
-	void unregister_timer_event() { reactor()->unregister_timer_handler(handle()); _handle = invalid_handle; }
+	void unregister_timer_event() { reactor()->unregister_timer_handler(handle()); handle_close(); _handle = invalid_handle; }
 
 	virtual int32 handle_input() { return 0; }
 

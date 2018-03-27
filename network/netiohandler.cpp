@@ -116,7 +116,6 @@ int32 NetIoHandler::send(const char *data, uint32 len, bool immediately/* = true
 		_snd_buff.unlock();
 		snd_ordered = true;
 	}
-	_snd_buff.unlock();
 
 	if (err) {
 		reactor()->add_cmd(CommandHandler::CT_DISCONNECT, this);
@@ -168,14 +167,21 @@ int32 NetIoHandler::reconnect() {
 
 int32 NetIoHandler::update_base() {
 	// handle max 64 packets a round.
-	char *packet[64] = { 0 };
-	_recved_packet.lock();
-	int32 ret = _recved_packet.read((char **)packet, sizeof(packet));
-	_recved_packet.unlock();
+	int ret = 0;
 
-	for (int i = 0; i < ret; ++i) {
-		handle_packet((char *)packet[i]);
-		sfree(packet[i]);
+	while (true) {
+		char *packet[64] = { 0 };
+		_recved_packet.lock();
+		int32 num = _recved_packet.read((char **)packet, sizeof(packet));
+		_recved_packet.unlock();
+		if (num <= 0) break;
+
+		ret += num;
+
+		for (int i = 0; i < num; ++i) {
+			handle_packet((char *)packet[i]);
+			sfree(packet[i]);
+		}
 	}
 
 	return ret;
