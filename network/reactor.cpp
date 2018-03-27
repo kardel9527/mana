@@ -49,9 +49,6 @@ void Reactor::end_event_loop() {
 	if (_thread_id) {
 		::pthread_join((pthread_t)_thread_id, 0);
 	}
-
-	// close reactor impl
-	impl()->close();
 }
 
 void Reactor::add_cmd(int32 type, NetIoHandler *handler) {

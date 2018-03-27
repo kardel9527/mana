@@ -1,6 +1,7 @@
 #include <assert.h>
 #include <time.h>
 #include "ihandler.h"
+#include "timeutil.h"
 #include "timerlist.h"
 
 NMS_BEGIN(kevent)
@@ -22,7 +23,7 @@ int32 TimerList::add(uint64 start, uint32 itv, IHandler *handler) {
 	Node *node = new Node();
 	node->_id = ++_seed;
 	node->_handler = handler;
-	node->_timeout = start;
+	node->_timeout = start ? start : ktimeutil::get_current_time();
 	node->_itv = itv;
 	
 	node->_next = _head;
@@ -53,6 +54,7 @@ void TimerList::remove(int32 id) {
 }
 
 int32 TimerList::expire_single(uint64 now) {
+	now = now ? now : ktimeutil::get_current_time();
 	Node *curr = _head;
 	Node *prev = _head;
 	while (curr) {
@@ -85,6 +87,7 @@ int32 TimerList::expire_single(uint64 now) {
 }
 
 int32 TimerList::expire_all(uint64 now) {
+	now = now ? now : ktimeutil::get_current_time();
 	Node *curr = _head;
 	while (curr) {
 		if (curr->_timeout >= now) {

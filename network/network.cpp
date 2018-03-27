@@ -86,12 +86,20 @@ void NetWork::stop() {
 		(*it)->close();
 	}
 
-	// close connector.
-	_connector->close();
 	// kick off all net handler
 	_net_mgr->kickall();
-	// stop reactor finally.
+	
+	// stop reactor.
 	_main_reactor->end_event_loop();
+
+	// close connector.
+	_connector->close();
+
+	// wait all net handler kicked.
+	_net_mgr->wait_all_kicked();
+
+	// close reactor
+	_main_reactor->impl()->close();
 }
 
 void NetWork::update() {

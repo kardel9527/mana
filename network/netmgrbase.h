@@ -34,6 +34,8 @@ public:
 
 	void kickall();
 
+	void wait_all_kicked();
+
 	// redefine these two functions if you want to alloc handler dynamic.
 	// notice that default action is put/get handler into/from a list of each handler type.
 	virtual void put_handler(NetIoHandler *handler);

@@ -42,7 +42,7 @@ void uninit_instance() {
 	klog::Logger::destroy();
 }
 
-static bool s_server_active = true;
+static volatile bool s_server_active = true;
 
 void stop_server(int sig) {
 	s_server_active = false;
@@ -62,7 +62,7 @@ int32 main(int32 argc, char *argv[]) {
 	NetWork net(new NetMgrBase());
 
 	// add 100 connections
-	for (int i = 0; i < 100; ++i) {
+	for (int i = 0; i < 10000; ++i) {
 		TestClientHandler *handler = new TestClientHandler();
 		handler->addr(addr);
 		net.add_client_handler(handler);

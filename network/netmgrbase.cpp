@@ -51,8 +51,9 @@ void NetMgrBase::kickall() {
 	for (HandlerMap::iterator it = _handler_map.begin(); it != _handler_map.end(); ++it) {
 		it->second->kickoff();
 	}
+}
 
-	// wait all handler kicked.
+void NetMgrBase::wait_all_kicked() {
 	while (!_handler_map.empty()) {
 		update_handler_operation();
 	}

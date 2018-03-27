@@ -1,6 +1,7 @@
 #include <assert.h>
 #include "ihandler.h"
 #include "petty.h"
+#include "timeutil.h"
 #include "timerheap.h"
 
 NMS_BEGIN(kevent)
@@ -15,7 +16,7 @@ int32 TimerHeap::add(uint64 start, uint32 itv, IHandler *handler) {
 	Node &node = _data[_data.size() - 1];
 	node._id = (int32)_data.size();
 	node._handler = handler;
-	node._timeout = start;
+	node._timeout = start ? start : ktimeutil::get_current_time();
 	node._interval = itv;
 
 	filter_up(_data.size() - 1);
@@ -37,6 +38,7 @@ void TimerHeap::remove(int32 id) {
 }
 
 int32 TimerHeap::expire_single(uint64 now) {
+	now = now ? now : ktimeutil::get_current_time();
 	if (_data.empty()) return 0;
 
 	Node &node = _data[0];
@@ -56,6 +58,7 @@ int32 TimerHeap::expire_single(uint64 now) {
 
 int32 TimerHeap::expire_all(uint64 now) {
 	int ret = 0;
+	now = now ? now : ktimeutil::get_current_time();
 
 	while (expire_single(now)) ret ++;
 
