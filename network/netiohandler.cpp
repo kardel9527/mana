@@ -32,7 +32,7 @@ int32 NetIoHandler::handle_input() {
 	// connection was disconnected by peer.
 	if (n == 0) return -1;
 	// error curred, see if would block
-	if (n < 0) return (errno != EAGAIN && errno != EWOULDBLOCK) ? -1 : 0;
+	if (n < 0) return (errno != EAGAIN && errno != EWOULDBLOCK && errno != EINTR) ? -1 : 0;
 
 	// write the recved n bytes into the recv buffer.
 	if (_recv_helper.complete(n)) {
@@ -192,7 +192,7 @@ int32 NetIoHandler::send_immediate(const char *data, uint32 len) {
 	// connection was disconnected by peer.
 	if (n == 0) return -1;
 	// error curred, see if would block
-	if (n < 0) return (errno != EAGAIN && errno != EWOULDBLOCK) ? -1 : 0;
+	if (n < 0) return (errno != EAGAIN && errno != EWOULDBLOCK && errno != EINTR) ? -1 : 0;
 
 	// ok, send n bytes.
 	return n;

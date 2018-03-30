@@ -56,7 +56,7 @@ int32 Acceptor::handle_input() {
 
 	int32 fd = ::accept(handle(), (sockaddr *)addr.addr(), &addr_len);
 	if (fd == -1) {
-		return (errno == EAGAIN || errno == EWOULDBLOCK || errno == EMFILE) ? 0 : -1;
+		return (errno == EAGAIN || errno == EWOULDBLOCK || errno == EMFILE || errno == EINTR) ? 0 : -1;
 	} else {
 		// set none block
 		::fcntl(fd, F_SETFL, ::fcntl(fd, F_GETFL) | O_NONBLOCK);
