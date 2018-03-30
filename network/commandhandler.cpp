@@ -22,19 +22,21 @@ void CommandHandler::add(const CommandHandler::Command &cmd) {
 }
 
 int32 CommandHandler::handle_timeout() {
-	CommandHandler::Command cmd;
+	int fetch_num = 0;
+	CommandHandler::Command cmd[64] = { 0 };
 	_cmds.lock();
 	if (_cmds.empty()) {
 		_cmds.unlock();
 		return 0;
 	}
 
-	cmd = _cmds.pop();
+	fetch_num = _cmds.read(cmd, 64);
 	_cmds.unlock();
 
-	handle_cmd(cmd);
+	for (int i = 0; i < fetch_num; ++i)
+		handle_cmd(cmd);
 
-	return 1;
+	return fetch_num;
 }
 
 void CommandHandler::handle_cmd(const CommandHandler::Command &cmd) {
