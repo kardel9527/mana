@@ -48,6 +48,7 @@ void Reactor::end_event_loop() {
 	// wait child thread exit.
 	if (_thread_id) {
 		::pthread_join((pthread_t)_thread_id, 0);
+		_thread_id = 0;
 	}
 }
 

@@ -13,36 +13,24 @@ struct DefaultLock {
 
 class Mutex {
 public:
-	Mutex() { pthread_mutex_init(&_mutex, 0); }
-	~Mutex() { pthread_mutex_destroy(&_mutex); }
+	Mutex() { ::pthread_mutex_init(&_mutex, 0); }
+	~Mutex() { ::pthread_mutex_destroy(&_mutex); }
 	
-	void lock() { pthread_mutex_lock(&_mutex); }
+	void lock() { ::pthread_mutex_lock(&_mutex); }
 	
-	void unlock() { pthread_mutex_unlock(&_mutex); }
+	void unlock() { ::pthread_mutex_unlock(&_mutex); }
 	
-	void trylock() { pthread_mutex_trylock(&_mutex); }
+	bool trylock() { 
+		int rc = ::pthread_mutex_trylock(&_mutex);
+		return rc == EBUSY ? : false : true;
+	}
 	
 private:
 	Mutex(const Mutex &other) {}
-	Mutex& operator = (const Mutex &other) { return *this; }
+	const Mutex& operator = (const Mutex &other) { return *this; }
 
 private:
 	::pthread_mutex_t _mutex;
-};
-
-// a helper class auto release lock in an area
-template<typename LOCK = DefaultLock>
-class AutoLock : public LOCK {
-public:
-	AutoLock(LOCK &lock) : _lock(lock) { _lock.lock(); }
-	~AutoLock() { _lock.unlock(); }
-
-private:
-	AutoLock(const AutoLock &other) {}
-	AutoLock& operator = (const AutoLock &other) { return *this; }
-
-private:
-	LOCK &_lock;
 };
 
 #ifdef KMT
@@ -50,6 +38,21 @@ private:
 #else
 #define LockType kcommon::DefaultLock
 #endif // KMT
+
+// a helper class auto release lock in an area
+template<typename LOCK = LockType>
+class AutoLock {
+public:
+	AutoLock(LOCK &lock) : _lock(lock) { _lock.lock(); }
+	~AutoLock() { _lock.unlock(); }
+
+private:
+	AutoLock(const AutoLock &other) {}
+	const AutoLock& operator = (const AutoLock &other) { return *this; }
+
+private:
+	LOCK &_lock;
+};
 
 NMS_END // end namespace kcommon
 
