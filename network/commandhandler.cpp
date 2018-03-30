@@ -23,7 +23,7 @@ void CommandHandler::add(const CommandHandler::Command &cmd) {
 
 int32 CommandHandler::handle_timeout() {
 	int fetch_num = 0;
-	CommandHandler::Command cmd[64] = { 0 };
+	CommandHandler::Command cmd[64];
 	_cmds.lock();
 	if (_cmds.empty()) {
 		_cmds.unlock();
@@ -34,7 +34,7 @@ int32 CommandHandler::handle_timeout() {
 	_cmds.unlock();
 
 	for (int i = 0; i < fetch_num; ++i)
-		handle_cmd(cmd);
+		handle_cmd(cmd[i]);
 
 	return fetch_num;
 }
