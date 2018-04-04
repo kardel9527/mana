@@ -1,6 +1,7 @@
 #ifndef __LOCK_H_
 #define __LOCK_H_
 #include <pthread.h>
+#include <errno.h>
 #include "macros.h"
 
 NMS_BEGIN(kcommon)
@@ -22,7 +23,7 @@ public:
 	
 	bool trylock() { 
 		int rc = ::pthread_mutex_trylock(&_mutex);
-		return rc == EBUSY ? : false : true;
+		return rc == EBUSY ? false : true;
 	}
 	
 private:
