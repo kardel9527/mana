@@ -1,0 +1,3 @@
+# mana
+* a lib of network, design as reactor pattern.
+* mainly used for some kind of games via tcp, such as ARPG, MMO...
