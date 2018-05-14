@@ -22,8 +22,7 @@ public:
 	void unlock() { ::pthread_mutex_unlock(&_mutex); }
 	
 	bool trylock() { 
-		int rc = ::pthread_mutex_trylock(&_mutex);
-		return rc == EBUSY ? false : true;
+		return ::pthread_mutex_trylock(&_mutex) == EBUSY ? false : true;
 	}
 	
 private:
@@ -34,8 +33,25 @@ private:
 	::pthread_mutex_t _mutex;
 };
 
+class Spin {
+public:
+	Spin() { ::pthread_spin_init(&_spin, 0); }
+	~Spin() { ::pthread_spin_destroy(&_spin); }
+
+	void lock() { ::pthread_spin_lock(&_spin); }
+
+	void unlock() { ::pthread_spin_unlock(&_spin); }
+
+	bool trylock() {
+		return ::pthread_spin_trylock(&_spin) == EBUSY ? false : true;
+	}
+
+private:
+	pthread_spinlock_t _spin;
+};
+
 #ifdef KMT
-#define LockType kcommon::Mutex
+#define LockType kcommon::Spin
 #else
 #define LockType kcommon::DefaultLock
 #endif // KMT
